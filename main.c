@@ -4,6 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+
+// Standard format of arguments: $ ./program PATH-TO-INI-FILE.ini section.key
+// Enhanced format of arguments: $ ./program PATH-TO-INI-FILE.ini expression "distance.velocity * travel.time"
 
 int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need to accept arguments here
 {

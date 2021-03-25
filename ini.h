@@ -41,7 +41,7 @@ struct sectionData
 /* FUNCTIONS */
 
 /* Creates a new holder array for the INI file */
-char* createHolder();
+sectionData* createHolder();
 
 /* Reads the file, i.e:
  * 1. Gets:
@@ -60,7 +60,8 @@ char* createHolder();
  * 5 - expression with operands of different types
  * 6 - expression with invalid operators
  * 7 - file not opened
+ * 8 - not an .ini file
  */
-void readIni();
+int readIni(char *filePath, sectionData *holderArray);
 
 #endif
