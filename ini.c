@@ -35,14 +35,27 @@ int readIni(char *filePath, sectionData *sectionArray)
 
     while (fgets(buf, bufsize, fp) != NULL)
     {
-        // Check if all line was read, if not, increase buffer
-        while (buf[strlen(buf)] != "\n") {
+        // Check if all line was read, if not, increase buffer till it was
+        // The size of buffer will be increased permanently in case of new long lines
+        while (buf[strlen(buf)] != '\n') {
             bufsize = bufsize + 100;
             if ((buf = realloc(buf, bufsize * sizeof(char))) == NULL) {
-                printf("Error- did not reallocate memory for greater buffer\n")
+                printf("Error - did not reallocate memory for greater buffer\n");
                 return 1;
             }
-            if (fgets(buf, ))
+            // Temporary buffer, to which additional line is read
+            char *tempbuf;
+            if ((tempbuf = malloc(100 * sizeof(char))) == NULL) {
+                printf("Error - did not alloocate memory for tempbuf\n");
+                return 1;
+            }
+            if (fgets(tempbuf, 100, fp) == NULL) {
+                printf("Error - did not read a longer line\n");
+                return 9;
+            }
+            // Concatenate new, bigger buf with newly read string
+            strcat(buf, tempbuf);
+            free(tempbuf);
         }
     }
     if (feof(fp)) { printf("Ended reading file\n"); return 0; }

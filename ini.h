@@ -63,7 +63,7 @@ sectionData* createHolder();
  *
  * 7 - file not opened
  * 8 - not an .ini file
- * 9 - did not reach EOF
+ * 9 - error reading the file
  */
 int readIni(char *filePath, sectionData *sectionArray);
 
