@@ -15,5 +15,10 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
     int argc;
     char *argv[3 /* SOME SIZE VALUE */];
 
+    char filePath[] = "testing-ini.ini";
+    sectionData *sectionArray;
+
+    if (readIni(filePath, sectionArray) != 0) { printf("Error - readIni() did not work\n"); return 0; }
+
     return 0;
 }

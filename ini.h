@@ -8,34 +8,31 @@ typedef struct sectionData sectionData;
 
 /* STRUCTURES */
 
-/* NOTE - dynamic memory allocation with no limits can be done in such way:
- * - 2 structures (one storing section and pointer to next such structure,
- *   second storing key, its value and pointer to the next such struct)
- * - allocating memory dynamically with `realloc` and assigning a new section
- *   struct containing its keys struct
- *
- * I opt for the second option, as it's a new one to me.
- */
-
 struct keyData
 {
-    // Key
-    char *key;
+    // Name of the key
+    char *name;
 
     // Value, if it's of string type (if not, it's NULL)
     char *valStr;
 
     // Value, if it's of number type (checked only if valStr is NULL)
     int *valNum;
+
+    // Pointer to the next key in this structure
+    keyData *nextKey;
 };
 
 struct sectionData
 {
-    // Section
-    char *section;
+    // Name of the section
+    char *name;
 
-    // Array of keys assigned to this section
-    char *keysArray;
+    // Pointer to the first key in this section
+    keyData *firstKey;
+
+    // Pointer to the next section
+    sectionData *nextSection;
 };
 
 /* FUNCTIONS */
@@ -65,6 +62,6 @@ sectionData* createHolder();
  * 8 - not an .ini file
  * 9 - error reading the file
  */
-int readIni(char *filePath, sectionData *sectionArray);
+int readIni(char *filePath, sectionData *firstSection);
 
 #endif
