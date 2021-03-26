@@ -58,6 +58,13 @@ int saveSection(char *sectionName, sectionData *firstSection);
   */
 int saveKey(char *keyName, char *keyValue, sectionData *section);
 
+/* Skips 'space' characters where possible
+ *
+ * Returns the index of next non-space character in the buffer
+ * If error occurs, returns -1
+ */
+int skipSpaces(char *buf, int startIndex);
+
 /* Reads the file, i.e:
  * 1. Gets:
  * - number of sections

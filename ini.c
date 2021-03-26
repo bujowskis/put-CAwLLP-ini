@@ -31,6 +31,19 @@ int saveKey(char *keyName, char *keyValue, sectionData *section)
     return 0;
 }
 
+int skipSpaces(char *buf, int startIndex)
+{
+    if (buf == NULL) { printf("\nError in skipSpaces() - invalid buf\n"); return -1; }
+    if (startIndex < 0) { printf("\nError in skipSpaces() - startIndex cannot be negative\n"); return -1; }
+    // Just for debugging
+    printf("(skipSpaces started successfully)\n");
+    int index = startIndex;
+    while (buf[index] == ' ')
+        index++;
+
+    return index;
+}
+
 int readIni(char *filePath, sectionData *firstSection)
 {
     FILE *fp = fopen(filePath, "r");
@@ -56,6 +69,8 @@ int readIni(char *filePath, sectionData *firstSection)
 
     // Stores the last index of given buffer
     size_t lastIndex;
+    // Keeps track of the position inside buffer
+    int bufIndex = 0;
 
     // Reads all the file, processing data line-by-line
     while (fgets(buf, bufsize, fp) != NULL)
@@ -90,50 +105,24 @@ int readIni(char *filePath, sectionData *firstSection)
         // To check if reading works
         printf("buf = \"%s\"\n", buf);
 
+        // Here, the line can be either a new section, or new key
 
-    }
-    if (feof(fp)) { printf("(ended reading file)\n"); return 0; }
+        // Line is a section
+        //if (buf[0] == '[') {}
 
-    /* NOTE - don't try to reinvent the wheel.
-     * use tokenization instead
 
-    // The file is read char by char in such way:
-
-    // Currently read char, represented as a number from fgetc()
-    int currentChar;
-    // These keep track of where we are in the code
-    bool inSection = false;
-    bool inKey = false;
-    bool inValue = false;
-    // Holder for currently read section, key or value
-    // It is of length 100 at first, but will be extended if needed
-    char *currentStr;
-    if ((currentStr = malloc(100 * sizeof(char))) == NULL) { return 1; }
-    // Respective indexes
-    int
-
-    // Read till the end of file
-    while ((currentChar = fgetc(fp)) != EOF)
-    {
-        // If a comment is encountered, skip to new line
-        if (currentChar == ';') {
-
-            // NOTE - here we could validate the data based on where
-            // we are in the code, e.g. if we read a key, but no value
-            // has been provided.
-
-            if ((currentChar = fgetc(fp)) == EOF) { break; }
-            while (currentChar != '\n') {
-                if ((currentChar = fgetc(fp)) == EOF) { break; }
-                continue;
-            }
-            continue; // Skips "\n" and starts from the beginning `while`
+        // Testing space skipping
+        printf("buf[0] = %c\n", buf[0]);
+        printf("bufIndex = %d\n", bufIndex);
+        printf("buf[bufIndex] = %c\n", buf[bufIndex]);
+        if (buf[bufIndex] == ' ') {
+            if ((bufIndex = skipSpaces(buf, bufIndex)) == -1) { return 9; }
+            printf("bufIndex after skipSpaces = %d, buf[bufIndex] = %c\n", bufIndex, buf[bufIndex]);
         }
 
 
     }
-    free(currentStr);
-    */
+    if (feof(fp)) { printf("(ended reading file)\n"); return 0; }
 
     printf("Error - did not reach EOF\n");
     return 9;
