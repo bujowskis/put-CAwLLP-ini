@@ -40,6 +40,24 @@ struct sectionData
 /* Creates a new holder array for the INI file */
 sectionData* createHolder();
 
+/* Allocates memory for a new section and saves pointer to it in
+ * next free section pointer place
+ *
+ * Return codes:
+ * 0 - success
+ * 1 - error (TODO)
+ */
+int saveSection(char *sectionName, sectionData *firstSection);
+
+ /* Allocates memory for a new key and saves pointer to it in next
+  * free key pointer place
+  *
+  * Return codes:
+  * 0 - success
+  * 1 - error (TODO)
+  */
+int saveKey(char *keyName, char *keyValue, sectionData *section);
+
 /* Reads the file, i.e:
  * 1. Gets:
  * - number of sections

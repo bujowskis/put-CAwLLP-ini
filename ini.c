@@ -56,8 +56,6 @@ int readIni(char *filePath, sectionData *firstSection)
 
     // Stores the last index of given buffer
     size_t lastIndex;
-    // Stores index of current section
-    int sectionIndex = -1;
 
     // Reads all the file, processing data line-by-line
     while (fgets(buf, bufsize, fp) != NULL)
