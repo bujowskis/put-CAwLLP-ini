@@ -79,6 +79,7 @@ int skipSpaces(char *buf, int startIndex);
  * 2 - missing section (+ prints message)
  * 3 - missing key (+ prints message)
  * 4 - invalid identifiers in INI file (other than alphanumeric)
+ *
  * TODO - MOVE EXPRESSION EVALUATION TO PROPER PLACE
  * 5 - expression with operands of different types
  * 6 - expression with invalid operators
@@ -86,6 +87,7 @@ int skipSpaces(char *buf, int startIndex);
  * 7 - file not opened
  * 8 - not an .ini file
  * 9 - error reading the file
+ * 10 - invalid section name
  */
 int readIni(char *filePath, sectionData *firstSection);
 

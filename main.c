@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdbool.h>
+#include <ctype.h>
 
 // Standard format of arguments: $ ./program PATH-TO-INI-FILE.ini section.key
 // Enhanced format of arguments: $ ./program PATH-TO-INI-FILE.ini expression "distance.velocity * travel.time"
@@ -17,6 +18,7 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
 
     char filePath[] = "testing-ini.ini";
     sectionData *sectionArray;
+    sectionArray = createHolder();
 
     if (readIni(filePath, sectionArray) != 0) { printf("Error - readIni() did not work\n"); return 0; }
 
