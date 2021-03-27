@@ -87,7 +87,7 @@ int skipSpaces(char *buf, int startIndex);
  * 7 - file not opened
  * 8 - not an .ini file
  * 9 - error reading the file
- * 10 - invalid section name
+ * 10 - invalid section declaration
  */
 int readIni(char *filePath, sectionData *firstSection);
 

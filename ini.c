@@ -114,7 +114,6 @@ int readIni(char *filePath, sectionData *firstSection)
             printf("Error - did not skip spaces at the beginning of buf\n");
             return 9;
         }
-        printf("(skipped spaces at the beginning of buf)\n");
 
         // Here, the line can be either a new section, or a new key
 
@@ -195,6 +194,14 @@ int readIni(char *filePath, sectionData *firstSection)
 
             // To test if section reading works
             printf("newSection->name = %s\n", newSection->name);
+
+            // Check if there's something else after section declaration
+            bufIndex = skipSpaces(buf, bufIndex + 1); // +1 to compensate for ']'
+            // Formatting is valid if there is a comment or a new line
+            if (buf[bufIndex] != '\n' && buf[bufIndex] != ';') {
+                printf("Error - section declarations ends with no comment or new line\n");
+                return 10;
+            }
 
             continue;
         }
