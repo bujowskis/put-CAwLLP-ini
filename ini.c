@@ -57,6 +57,7 @@ int readIni(char *filePath, sectionData *firstSection)
     int elementFirstIndex, elementLastIndex, elementSize;
     // Stores a pointer to the current section
     sectionData *currentSection;
+    currentSection = NULL;
 
     // Reads all the file, processing data line-by-line
     while (fgets(buf, bufsize, fp) != NULL)
@@ -181,6 +182,9 @@ int readIni(char *filePath, sectionData *firstSection)
             }
             // Formatting is valid if there is a comment or a new line
             if (buf[bufIndex] != '\n' && buf[bufIndex] != ';') {
+                // It might also indicate EOF
+                if (feof(fp))
+                    continue;
                 printf("Error - section declaration ends with no comment or new line\n");
                 return 10;
             }
@@ -191,7 +195,6 @@ int readIni(char *filePath, sectionData *firstSection)
 
         // Line is a key
         // Reads and validates the key name
-
         elementFirstIndex = bufIndex;
         // First character in the key name must be an alphabetic char
         if (isalpha(buf[bufIndex]) == 0) {
@@ -211,7 +214,7 @@ int readIni(char *filePath, sectionData *firstSection)
                 bufIndex++;
             } else {
                 printf("Error - invalid key name\n");
-                return 10;
+                return 11;
             }
         }
         elementLastIndex = bufIndex - 1;
@@ -251,7 +254,7 @@ int readIni(char *filePath, sectionData *firstSection)
         bool isNumber = true;
 
         // Check if the key value exists
-        // First character in the key value must be an alphabetic char
+        // First character in the key value must be an alphanumeric char
         if (isalnum(buf[bufIndex]) == 0) {
             printf("Error - first char of key value must be alphanumeric\n");
             return 11;
@@ -259,20 +262,116 @@ int readIni(char *filePath, sectionData *firstSection)
         if (isdigit(buf[bufIndex]) == 0)
             isNumber = false;
         bufIndex++;
-
+/*
         // EOF may also indicate the end of the key value
         // It requires different handling
         if (feof(fp)) {
-            // READ KEY IF IT ENDS WITH EOF
-            elementLastIndex = (int) lastIndex;
+            // READ KEY IF IT ENDS WITH EOF (KEEP IN MIND lastIndex) !!!
+            while (bufIndex <= lastIndex) {
+                // ' ' and ';' may also indicate the end of the key value
+                if (buf[bufIndex] == ' ' || buf[bufIndex] == ';') {
+                    elementLastIndex = bufIndex - 1;
+                    elementSize = elementLastIndex - elementFirstIndex + 1;
+                    break;
+                }
+                if (isalnum(buf[bufIndex]) == 0) {
+                    printf("Error - key value can only have alphanumeric characters\n");
+                    return 11;
+                }
+                // If there is still possibility it is a number, check it
+                if (isNumber == true) {
+                    if (isdigit(buf[bufIndex]) == 0)
+                        isNumber = false;
+                }
+                bufIndex++;
+            }
+            // IT MIGHT BE NEEDED TO ASSIGN DIFFERENTLY IF ENDED WITH EOF
+            elementLastIndex = bufIndex - 1;
+            elementSize = elementLastIndex - elementFirstIndex + 1;
+            int newKeyvalNum = 0;
+            char *newKeyvalStr = NULL;
+
+            // Processes data based on the type of value
+            if (isNumber == true) {
+                // Adds the numbers with their corresponding base10 multiplier,
+                // according to their place
+                // NOTE - this works, provided the values are non-negative,
+                // which is the case of this task
+                int baseMultiplier = 1;
+                printf("(for loop starts)\n");
+                printf("(elementFirstIndex = %d, elementLastIndex = %d)\n", elementFirstIndex, elementLastIndex);
+                for (int i = elementLastIndex; i >= elementFirstIndex; i--) {
+                    printf("i = %d, baseMultiplier = %d, (int) buf[i] - '0' = %d\n", i, baseMultiplier, (int) buf[i] - '0');
+                    newKeyvalNum = newKeyvalNum + ((int) buf[i] - '0') * baseMultiplier;
+                    baseMultiplier = baseMultiplier * 10;
+                    printf("newKeyvalNum = %d\n", newKeyvalNum);
+                }
+                printf("(for loop ends)\n");
+            } else {
+                if ((newKeyvalStr = malloc((elementSize + 1) * sizeof(char))) == NULL) { // +1 for '\0'
+                    printf("Error - did not allocate memory for string-type key value\n");
+                    return 1;
+                }
+                // Put the name together char by char, write '\0' at the end
+                for (int i = 0; i < elementSize; i++)
+                    newKeyvalStr[i] = buf[elementFirstIndex + i];
+                newKeyvalStr[elementSize] = '\0';
+            }
+
+            // Allocates memory for the newKey, binds the data
+            keyData *newKey;
+            if ((newKey = malloc(sizeof(keyData))) == NULL) {
+                printf("Error - did not allocate memory for a new key\n");
+                return 1;
+            }
+            newKey->name = newKeyName;
+            newKey->valStr = newKeyvalStr;
+            newKey->valNum = newKeyvalNum;
+            newKey->nextKey = NULL;
+
+            // If this is the first key in current section, make it one
+            if (currentSection->firstKey == NULL) {
+                currentSection->firstKey = newKey;
+            } else {
+                // Seek for the first key with free pointer place
+                keyData *freePlaceKey;
+                freePlaceKey = currentSection->firstKey;
+                while (freePlaceKey->nextKey != NULL)
+                    freePlaceKey = freePlaceKey->nextKey;
+                freePlaceKey->nextKey = newKey;
+            }
 
             // NOTE - THERE CAN STILL BE COMMENTS, WHITESPACES, ETC.
 
-            continue;
+            // Check if there's something else after key declaration
+            if ((bufIndex = skipSpaces(buf, bufIndex)) == -1) {
+                printf("Error - did not skip spaces at the end of section declaration\n");
+                return 9;
+            }
+            // Formatting is valid if there is a comment a new line
+            if (buf[bufIndex] != '\n' && buf[bufIndex] != ';') {
+            // It might also indicate EOF
+            if (feof(fp))
+                break;
+            printf("Error - key declaration ends with no comment or new line\n");
+            return 11;
         }
 
+        // Just for testing
+        printf("newKey->name = \"%s\"\n", newKey->name);
+        if (newKey->valStr != NULL) {
+            printf("newKey->valStr = \"%s\"\n", newKey->valStr);
+        } else {
+            printf("newKey->valNum = %d\n", newKey->valNum);
+        }
+
+        bufIndex = 0;
+
+            continue;
+        }
+*/
         // Regular handling
-        while (buf[bufIndex] != '\n') {
+        while (buf[bufIndex] != '\n' && bufIndex <= (int) lastIndex) {
             // ' ' and ';' may also indicate the end of the key value
             if (buf[bufIndex] == ' ' || buf[bufIndex] == ';')
                 break;
@@ -347,6 +446,17 @@ int readIni(char *filePath, sectionData *firstSection)
         }
         // Formatting is valid if there is a comment or a new line
         if (buf[bufIndex] != '\n' && buf[bufIndex] != ';') {
+            // It might also indicate EOF
+            if (feof(fp)) {
+                // Just for testing
+                printf("newKey->name = \"%s\"\n", newKey->name);
+                if (newKey->valStr != NULL) {
+                    printf("newKey->valStr = \"%s\"\n", newKey->valStr);
+                } else {
+                    printf("newKey->valNum = %d\n", newKey->valNum);
+                }
+                break;
+            }
             printf("Error - key declaration ends with no comment or new line\n");
             return 11;
         }
