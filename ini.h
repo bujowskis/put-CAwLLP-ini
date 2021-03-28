@@ -17,7 +17,7 @@ struct keyData
     char *valStr;
 
     // Value, if it's of number type (checked only if valStr is NULL)
-    int *valNum;
+    int valNum;
 
     // Pointer to the next key in this structure
     keyData *nextKey;
@@ -39,24 +39,6 @@ struct sectionData
 
 /* Creates a new holder array for the INI file */
 sectionData* createHolder();
-
-/* Allocates memory for a new section and saves pointer to it in
- * next free section pointer place
- *
- * Return codes:
- * 0 - success
- * 1 - error (TODO)
- */
-int saveSection(char *sectionName, sectionData *firstSection);
-
- /* Allocates memory for a new key and saves pointer to it in next
-  * free key pointer place
-  *
-  * Return codes:
-  * 0 - success
-  * 1 - error (TODO)
-  */
-int saveKey(char *keyName, char *keyValue, sectionData *section);
 
 /* Skips 'space' characters where possible
  *
@@ -88,6 +70,7 @@ int skipSpaces(char *buf, int startIndex);
  * 8 - not an .ini file
  * 9 - error reading the file
  * 10 - invalid section declaration
+ * 11 - invalid key declaration
  */
 int readIni(char *filePath, sectionData *firstSection);
 
