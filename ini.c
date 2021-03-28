@@ -342,7 +342,7 @@ int readIni(char *filePath, sectionData *firstSection)
         }
 
         // Just for testing
-        printf("newKey->name = %s\n", newKey->name);
+        printf("newKey->name = \"%s\"\n", newKey->name);
         if (newKey->valStr != NULL) {
             printf("newKey->valStr = \"%s\"\n", newKey->valStr);
         } else {
