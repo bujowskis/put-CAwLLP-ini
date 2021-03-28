@@ -157,10 +157,20 @@ int readIni(char *filePath, sectionData *firstSection)
                 firstSection = newSection;
             } else {
                 // Seek for the first section with free pointer place
+                // Check if section with the same name already occurred
                 sectionData *freePlaceSection;
                 freePlaceSection = firstSection;
-                while (freePlaceSection->nextSection != NULL)
+                while (freePlaceSection->nextSection != NULL) {
+                    if (strcmp(freePlaceSection->name, newSection->name) == 0) {
+                        printf("Error - declaring a new section with already taken name\n");
+                        return 10;
+                    }
                     freePlaceSection = freePlaceSection->nextSection;
+                }
+                if (strcmp(freePlaceSection->name, newSection->name) == 0) {
+                    printf("Error - declaring a new section with already taken name\n");
+                    return 10;
+                }
                 freePlaceSection->nextSection = newSection;
             }
 
