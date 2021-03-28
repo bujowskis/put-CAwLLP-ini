@@ -17,10 +17,102 @@ sectionData *createHolder()
 
 // TODO - REMOVING ELEMENTS ONCE THEY'RE NOT NEEDED
 
+int freeKey(keyData *key)
+{
+    // If the pointer is null, there is nothing to free
+    if (key == NULL)
+        return 0;
+
+    // It should be called only for keys with no pointers to other keys
+    if (key->nextKey != NULL) {
+        printf("Error - cannot free key that points to a next key\n");
+        return 1;
+    }
+
+    free(key->name);
+    free(key->valStr);
+    free(key);
+    // key == NULL;
+
+    return 0;
+}
+
+int freeAllKeys(keyData *firstKey)
+{
+    // If the pointer is null, there is nothing to free
+    if (firstKey == NULL)
+        return 0;
+
+    // Calls itself recursively to free all the keys
+    if (firstKey->nextKey != NULL) {
+        if (freeAllKeys(firstKey->nextKey) != 0) {
+            return 1;
+        }
+    }
+    if (freeKey(firstKey) != 0) {
+        printf("Error - did not free all the keys\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+int freeSection(sectionData *section)
+{
+    // If the pointer is null, there is nothing to free
+    if (section == NULL)
+        return 0;
+
+    // It should be called only for sections with no pointers to other sections
+    if (section->nextSection != NULL) {
+        printf("Error - cannot free section that points to a next section\n");
+        return 1;
+    }
+
+    // Firstly, free all the keys in this section if there are any
+    if (freeAllKeys(section->firstKey) != 0) {
+        printf("Error - did not free section \"%s\"\n", section->name);
+        return 1;
+    }
+
+    free(section->name);
+    free(section);
+    section = NULL;
+
+    return 0;
+}
+
+int freeAllSections(sectionData *firstSection)
+{
+    // If the pointer is null, there is nothing to free
+    if (firstSection == NULL) {
+        return 0;
+    }
+
+    // Calls itself recursively to free all the sections
+    if (firstSection->nextSection != NULL) {
+        if (freeAllSections(firstSection->nextSection) != 0) {
+            return 1;
+        }
+    }
+    if (freeSection(firstSection) != 0) {
+        printf("Error - did not free all the sections\n");
+        return 1;
+    }
+
+    return 0;
+}
+
 int skipSpaces(char *buf, int startIndex)
 {
-    if (buf == NULL) { printf("\nError in skipSpaces() - invalid buf\n"); return -1; }
-    if (startIndex < 0) { printf("\nError in skipSpaces() - startIndex cannot be negative\n"); return -1; }
+    if (buf == NULL) {
+        printf("\nError in skipSpaces() - invalid buf\n");
+        return -1;
+    }
+    if (startIndex < 0) {
+        printf("\nError in skipSpaces() - startIndex cannot be negative\n");
+        return -1;
+    }
     int index = startIndex;
     while (buf[index] == ' ')
         index++;
@@ -30,55 +122,44 @@ int skipSpaces(char *buf, int startIndex)
 
 int readIni(char *filePath, sectionData *firstSection)
 {
+    printf("(started reading file)\n");
     FILE *fp = fopen(filePath, "r");
     if (!fp) {
         printf("\nError: No such file (%s)\n", filePath);
         return 7;
     }
-    printf("(file opened successfully)\n");
 
     // Buffer for reading lines from the file
-    char *buf;
+    char *buf = NULL;
     int bufsize = 100; // Will be increased if a longer line is encountered
     if ((buf = malloc(bufsize * sizeof(char))) == NULL) {
         printf("Error - did not allocate memory for buffer\n");
+        free(buf);
         return 1;
     }
-    printf("(buffer initialized)\n");
-
-    // Just for testing
-    int lineIndex = 1;
 
     // Stores the last index of given buffer
     size_t lastIndex;
     // Keeps track of the position inside buffer
     int bufIndex = 0;
-    // Stores the first and last index of currently read element, as well as its size
+    // Stores the first, last index and the size of currently read element
     int elementFirstIndex, elementLastIndex, elementSize;
     // Stores a pointer to the current section
-    sectionData *currentSection;
-    currentSection = NULL;
+    sectionData *currentSection = NULL;
 
     // Reads all the file, processing data line-by-line
     while (fgets(buf, bufsize, fp) != NULL)
     {
-        // Just for debugging
-        printf("\tLine %d\t", lineIndex);
-        lineIndex++;
-
-        // If this line is a comment or blank, reading all of it is not necessary
-        // Instead, skips the line right away
-        if (buf[0] == ';' || buf[0] == '\n') { printf("(skipped comment or blank line)\n"); continue; }
-
-        // Save the index of the last element of this buffer
+        // If this line is a comment or blank, reading it is unnecessary
+        if (buf[0] == ';' || buf[0] == '\n') { continue; }
+        // Saves the index of the last element of this buffer
         lastIndex = strlen(buf) - 1;
 
-        // Check if all line was read, if not, increase buffer till it was
-        // The size of buffer will be increased permanently in case of new long lines
+        // Checks if all line was read - if not, increases buffer till it was
+        // The size of buffer is increased permanently in case of more long lines
         while (buf[lastIndex] != '\n') {
             // The end of line might also be EOF, which is also valid
-            if (feof(fp))
-                break;
+            if (feof(fp)) { break; }
             bufsize = bufsize + 100;
             if ((buf = realloc(buf, bufsize * sizeof(char))) == NULL) {
                 printf("\tError - did not reallocate memory for greater buffer\n");
@@ -92,9 +173,6 @@ int readIni(char *filePath, sectionData *firstSection)
             // Update the lastIndex
             lastIndex = strlen(buf) - 1;
         }
-        // To check if reading works
-        printf("buf = \"%s\"\n", buf);
-
         // Skip possible spaces at the beginning of buf
         if ((bufIndex = skipSpaces(buf, bufIndex)) == -1) {
             printf("Error - did not skip spaces at the beginning of buf\n");
@@ -105,7 +183,7 @@ int readIni(char *filePath, sectionData *firstSection)
 
         // Line is a section
         if (buf[bufIndex] == '[') {
-            // Read and validate the name
+            // Reads and validates the name
             bufIndex++;
             elementFirstIndex = bufIndex;
             // First character in the section name must be an alphabetic char
@@ -114,7 +192,7 @@ int readIni(char *filePath, sectionData *firstSection)
                 return 10;
             }
             bufIndex++;
-            while (buf[bufIndex] != ']') {
+            while (buf[bufIndex] != ']' && bufIndex <= (int) lastIndex) {
                 // Section name is valid if the rest of it consists of:
                 // 1. alphanumeric characters
                 // 2. hyphen '-'
@@ -126,16 +204,20 @@ int readIni(char *filePath, sectionData *firstSection)
                     return 10;
                 }
             }
+            if (buf[bufIndex] != ']') {
+                printf("Error - expected ']', got EOF instead\n");
+                return 10;
+            }
             elementLastIndex = bufIndex - 1;
             elementSize = elementLastIndex - elementFirstIndex + 1;
 
             // Allocates memory for this section and saves its elements
-            sectionData *newSection;
+            sectionData *newSection = NULL;
             if ((newSection = malloc(sizeof(sectionData))) == NULL) {
                 printf("Error - did not allocate memory for a new section\n");
                 return 1;
             }
-            char *newSectionName;
+            char *newSectionName = NULL;
             if ((newSectionName = malloc((elementSize + 1) * sizeof(char))) == NULL) { // + 1 for '\0'
                 printf("Error - did not allocate memory for the name of new section\n");
                 return 1;
@@ -155,11 +237,13 @@ int readIni(char *filePath, sectionData *firstSection)
 
             // If this is the first section in the file, make it one
             if (firstSection == NULL) {
+                printf("First section detected\n");
                 firstSection = newSection;
+                printf("firstSection->name = \"%s\"\n", firstSection->name);
             } else {
                 // Seek for the first section with free pointer place
                 // Check if section with the same name already occurred
-                sectionData *freePlaceSection;
+                sectionData *freePlaceSection = NULL;
                 freePlaceSection = firstSection;
                 while (freePlaceSection->nextSection != NULL) {
                     if (strcmp(freePlaceSection->name, newSection->name) == 0) {
@@ -202,7 +286,7 @@ int readIni(char *filePath, sectionData *firstSection)
             return 11;
         }
         bufIndex++;
-        while (buf[bufIndex] != '=') {
+        while (buf[bufIndex] != '=' && bufIndex <= (int) lastIndex) {
             // ' ' may also indicate an end of the key name
             if (buf[bufIndex] == ' ')
                 break;
@@ -217,10 +301,14 @@ int readIni(char *filePath, sectionData *firstSection)
                 return 11;
             }
         }
+        if (buf[bufIndex] != '=' && buf[bufIndex] != ' ') {
+            printf("Error - expected '=' after section name, got EOF\n");
+            return 10;
+        }
         elementLastIndex = bufIndex - 1;
         elementSize = elementLastIndex - elementFirstIndex + 1;
         // Stores the name of new key
-        char *newKeyName;
+        char *newKeyName = NULL;
         if ((newKeyName = malloc((elementSize + 1) * sizeof(char))) == NULL) { // + 1 for '\0'
             printf("Error - did not allocate memory for the name of new section\n");
             return 1;
@@ -231,15 +319,19 @@ int readIni(char *filePath, sectionData *firstSection)
         newKeyName[elementSize] = '\0';
 
         // Skips possible spaces to compensate for formatting such that
-        // key = value
-        // key =value
-        // key    =    value etc.
+        // "key = value"
+        // "key =value"
+        // "key    =    value" etc.
         if ((bufIndex = skipSpaces(buf, bufIndex)) == -1) {
             printf("Error - did not skip spaces after key name\n");
             return 9;
         }
         if (buf[bufIndex] != '=') {
-            printf("Error - invalid key declaration (expected '=', got '%c')\n", buf[bufIndex]);
+            if (bufIndex == (int) lastIndex + 1) {
+                printf("Error - expected '=' after key name, got EOF\n");
+            } else {
+                printf("Error - invalid key declaration (expected '=', got '%c')\n", buf[bufIndex]);
+            }
             return 11;
         }
         bufIndex++;
@@ -247,10 +339,13 @@ int readIni(char *filePath, sectionData *firstSection)
             printf("Error - did not skip spaces after '=' in key declaration\n");
             return 9;
         }
+        if (bufIndex == (int) lastIndex + 1) {
+            printf("Error - expected key value, got EOF\n");
+            return 11;
+        }
 
         // Reads and validates the key value
         elementFirstIndex = bufIndex;
-        printf("buf[elementFirstIndex] = %c\n", buf[elementFirstIndex]);
         bool isNumber = true;
 
         // Check if the key value exists
@@ -289,15 +384,10 @@ int readIni(char *filePath, sectionData *firstSection)
             // NOTE - this works, provided the values are non-negative,
             // which is the case of this task
             int baseMultiplier = 1;
-            printf("(for loop starts)\n");
-            printf("(elementFirstIndex = %d, elementLastIndex = %d)\n", elementFirstIndex, elementLastIndex);
             for (int i = elementLastIndex; i >= elementFirstIndex; i--) {
-                printf("i = %d, baseMultiplier = %d, (int) buf[i] - '0' = %d\n", i, baseMultiplier, (int) buf[i] - '0');
                 newKeyvalNum = newKeyvalNum + ((int) buf[i] - '0') * baseMultiplier;
                 baseMultiplier = baseMultiplier * 10;
-                printf("newKeyvalNum = %d\n", newKeyvalNum);
             }
-            printf("(for loop ends)\n");
         } else {
             if ((newKeyvalStr = malloc((elementSize + 1) * sizeof(char))) == NULL) { // +1 for '\0'
                 printf("Error - did not allocate memory for string-type key value\n");
@@ -309,7 +399,7 @@ int readIni(char *filePath, sectionData *firstSection)
             newKeyvalStr[elementSize] = '\0';
         }
         // Allocates memory for the newKey, binds the data
-        keyData *newKey;
+        keyData *newKey = NULL;
         if ((newKey = malloc(sizeof(keyData))) == NULL) {
             printf("Error - did not allocate memory for a new key\n");
             return 1;
@@ -324,7 +414,7 @@ int readIni(char *filePath, sectionData *firstSection)
             currentSection->firstKey = newKey;
         } else {
             // Seek for the first key with free pointer place
-            keyData *freePlaceKey;
+            keyData *freePlaceKey = NULL;
             freePlaceKey = currentSection->firstKey;
             while (freePlaceKey->nextKey != NULL)
                 freePlaceKey = freePlaceKey->nextKey;
@@ -338,32 +428,39 @@ int readIni(char *filePath, sectionData *firstSection)
         }
         // Formatting is valid if there is a comment or a new line
         if (buf[bufIndex] != '\n' && buf[bufIndex] != ';') {
-            // It might also indicate EOF
-            if (feof(fp)) {
-                // Just for testing
-                printf("newKey->name = \"%s\"\n", newKey->name);
-                if (newKey->valStr != NULL) {
-                    printf("newKey->valStr = \"%s\"\n", newKey->valStr);
-                } else {
-                    printf("newKey->valNum = %d\n", newKey->valNum);
-                }
+            // It might also indicate EOF, which is valid
+            if (feof(fp))
                 break;
-            }
             printf("Error - key declaration ends with no comment or new line\n");
             return 11;
         }
 
-        // Just for testing
-        printf("newKey->name = \"%s\"\n", newKey->name);
-        if (newKey->valStr != NULL) {
-            printf("newKey->valStr = \"%s\"\n", newKey->valStr);
-        } else {
-            printf("newKey->valNum = %d\n", newKey->valNum);
-        }
-
         bufIndex = 0;
     }
-    if (feof(fp)) { printf("(ended reading file)\n"); return 0; }
+    if (feof(fp)) {
+        printf("(ended reading file)\n");
+
+        // Just to check if everything was saved correctly here
+        sectionData *cSection = NULL;
+        keyData *cKey = NULL;
+        cSection = firstSection;
+        while (cSection != NULL) {
+            printf("[%s]\n", cSection->name);
+            cKey = cSection->firstKey;
+            while (cKey != NULL) {
+                printf("\t%s = ", cKey->name);
+                if (cKey->valStr != NULL) {
+                    printf("%s\n", cKey->valStr);
+                } else {
+                    printf("%d\n", cKey->valNum);
+                }
+                cKey = cKey->nextKey;
+            }
+            cSection = cSection->nextSection;
+        }
+
+        return 0;
+    }
 
     printf("Error - did not reach EOF\n");
     return 9;

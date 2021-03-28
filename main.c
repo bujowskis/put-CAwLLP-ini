@@ -17,10 +17,60 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
     char *argv[3 /* SOME SIZE VALUE */];
 
     char filePath[] = "testing-ini.ini";
-    sectionData *sectionArray;
-    sectionArray = createHolder();
+    // sections is really just a pointer to the first section
+    sectionData *sections;
+    sections = createHolder();
 
-    if (readIni(filePath, sectionArray) != 0) { printf("Error - readIni() did not work\n"); return 0; }
+    if (readIni(filePath, sections) != 0) {
+        printf("Error - readIni() did not work\n");
+        return 0;
+    }
+    printf("(readIni() worked)\n\n");
+
+    // Stuff done on the file read into the program
+
+    // Just to check - print out all sections, their keys and corresponding values
+    sectionData *cSection = NULL;
+    keyData *cKey = NULL;
+    cSection = sections;
+    printf("cSection->name = \"%s\"\n", cSection->name);
+    while (cSection != NULL) {
+        printf("[%s]\n", cSection->name);
+        cKey = cSection->firstKey;
+        while (cKey != NULL) {
+            printf("\t%s = ", cKey->name);
+            if (cKey->valStr != NULL) {
+                printf("%s\n", cKey->valStr);
+            } else {
+                printf("%d", cKey->valNum);
+            }
+            cKey = cKey->nextKey;
+        }
+        cSection = cSection->nextSection;
+    }
+
+    if (freeAllSections(sections) != 0) {
+        printf("Error - freeAll() did not work\n");
+        return 0;
+    }
+
+    // Just to check - try to print out it again
+        cSection = sections;
+    printf("cSection->name = \"%s\"\n", cSection->name);
+    while (cSection != NULL) {
+        printf("[%s]\n", cSection->name);
+        cKey = cSection->firstKey;
+        while (cKey != NULL) {
+            printf("\t%s = ", cKey->name);
+            if (cKey->valStr != NULL) {
+                printf("%s\n", cKey->valStr);
+            } else {
+                printf("%d", cKey->valNum);
+            }
+            cKey = cKey->nextKey;
+        }
+        cSection = cSection->nextSection;
+    }
 
     return 0;
 }

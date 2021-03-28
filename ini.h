@@ -40,6 +40,26 @@ struct sectionData
 /* Creates a new holder array for the INI file */
 sectionData* createHolder();
 
+/* Frees given key
+ * Returns 0 on success, otherwise 1
+ */
+int freeKey(keyData *key);
+
+/* Frees all keys recursively, starting from firstKey
+ * Returns 0 on success, otherwise 1
+ */
+int freeAllKeys(keyData *firstKey);
+
+/* Frees given section
+ * Returns 0 on success, otherwise 1
+ */
+int freeSection(sectionData *section);
+
+/* Frees all the sections (and thus all the file) recursively
+ * Returns 0 on success, otherwise 1
+ */
+int freeAllSections(sectionData *firstSection);
+
 /* Skips 'space' characters where possible
  *
  * Returns the index of next non-space character in the buffer
