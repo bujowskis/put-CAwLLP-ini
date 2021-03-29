@@ -17,6 +17,8 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
     char *argv[3 /* SOME SIZE VALUE */];
 
     char filePath[] = "testing-ini.ini";
+    //char filePath[] = "example-4.5.ini";
+    //char filePath[] = "testing-empty.ini";
     // sections is really just a pointer to the first section
     sectionData *sections;
     sections = createHolder();
