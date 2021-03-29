@@ -92,6 +92,6 @@ int skipSpaces(char *buf, int startIndex);
  * 10 - invalid section declaration
  * 11 - invalid key declaration
  */
-int readIni(char *filePath, sectionData *firstSection);
+int readIni(char *filePath, sectionData **firstSection);
 
 #endif

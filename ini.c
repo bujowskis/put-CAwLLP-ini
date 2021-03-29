@@ -15,7 +15,7 @@ sectionData *createHolder()
      return NULL;
 }
 
-// TODO - REMOVING ELEMENTS ONCE THEY'RE NOT NEEDED
+// TODO - DO THESE NEED TO RECEIVE ** TOO?
 
 int freeKey(keyData *key)
 {
@@ -120,7 +120,8 @@ int skipSpaces(char *buf, int startIndex)
     return index;
 }
 
-int readIni(char *filePath, sectionData *firstSection)
+
+int readIni(char *filePath, sectionData **firstSection)
 {
     printf("(started reading file)\n");
     FILE *fp = fopen(filePath, "r");
@@ -134,7 +135,6 @@ int readIni(char *filePath, sectionData *firstSection)
     int bufsize = 100; // Will be increased if a longer line is encountered
     if ((buf = malloc(bufsize * sizeof(char))) == NULL) {
         printf("Error - did not allocate memory for buffer\n");
-        free(buf);
         return 1;
     }
 
@@ -226,25 +226,21 @@ int readIni(char *filePath, sectionData *firstSection)
             for (int i = 0; i < elementSize; i++)
                 newSectionName[i] = buf[elementFirstIndex + i];
             newSectionName[elementSize] = '\0';
-
             // On initialization, a section contains only its name
             newSection->name = newSectionName;
             newSection->firstKey = NULL;
             newSection->nextSection = NULL;
 
-            // Update the current section
             currentSection = newSection;
 
             // If this is the first section in the file, make it one
-            if (firstSection == NULL) {
-                printf("First section detected\n");
-                firstSection = newSection;
-                printf("firstSection->name = \"%s\"\n", firstSection->name);
+            if (*firstSection == NULL) {
+                *firstSection = newSection;
             } else {
                 // Seek for the first section with free pointer place
                 // Check if section with the same name already occurred
                 sectionData *freePlaceSection = NULL;
-                freePlaceSection = firstSection;
+                freePlaceSection = *firstSection; // NOTE - IS THIS OK?
                 while (freePlaceSection->nextSection != NULL) {
                     if (strcmp(freePlaceSection->name, newSection->name) == 0) {
                         printf("Error - declaring a new section with already taken name\n");
@@ -439,18 +435,18 @@ int readIni(char *filePath, sectionData *firstSection)
     }
     if (feof(fp)) {
         printf("(ended reading file)\n");
-
+/*
         // Just to check if everything was saved correctly here
         sectionData *cSection = NULL;
         keyData *cKey = NULL;
-        cSection = firstSection;
+        cSection = *firstSection;
         while (cSection != NULL) {
             printf("[%s]\n", cSection->name);
             cKey = cSection->firstKey;
             while (cKey != NULL) {
-                printf("\t%s = ", cKey->name);
+                printf("\t\"%s\" = ", cKey->name);
                 if (cKey->valStr != NULL) {
-                    printf("%s\n", cKey->valStr);
+                    printf("\"%s\"\n", cKey->valStr);
                 } else {
                     printf("%d\n", cKey->valNum);
                 }
@@ -458,7 +454,7 @@ int readIni(char *filePath, sectionData *firstSection)
             }
             cSection = cSection->nextSection;
         }
-
+*/
         return 0;
     }
 
