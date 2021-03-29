@@ -17,39 +17,40 @@ sectionData *createHolder()
 
 // TODO - DO THESE NEED TO RECEIVE ** TOO?
 
-int freeKey(keyData *key)
+int freeKey(keyData **key)
 {
     // If the pointer is null, there is nothing to free
-    if (key == NULL)
+    if (*key == NULL)
         return 0;
 
     // It should be called only for keys with no pointers to other keys
-    if (key->nextKey != NULL) {
-        printf("Error - cannot free key that points to a next key\n");
+    if ((*key)->nextKey != NULL) {
+        printf("Error - cannot free key %s, it points to a next key\n", (*key)->name);
         return 1;
     }
-
-    free(key->name);
-    free(key->valStr);
-    free(key);
-    // key == NULL;
+printf("\t\t%s is being freed\t", (*key)->name);
+    free((*key)->name);
+    free((*key)->valStr);
+    free(*key);
+    *key = NULL;
+printf("(done)\n");
 
     return 0;
 }
 
-int freeAllKeys(keyData *firstKey)
+int freeAllKeys(keyData **firstKey)
 {
     // If the pointer is null, there is nothing to free
-    if (firstKey == NULL)
+    if (*firstKey == NULL)
         return 0;
 
     // Calls itself recursively to free all the keys
-    if (firstKey->nextKey != NULL) {
-        if (freeAllKeys(firstKey->nextKey) != 0) {
+    if ((*firstKey)->nextKey != NULL) {
+        if (freeAllKeys(&((*firstKey)->nextKey)) != 0) {
             return 1;
         }
     }
-    if (freeKey(firstKey) != 0) {
+    if (freeKey(&(*firstKey)) != 0) {
         printf("Error - did not free all the keys\n");
         return 1;
     }
@@ -57,45 +58,44 @@ int freeAllKeys(keyData *firstKey)
     return 0;
 }
 
-int freeSection(sectionData *section)
+int freeSection(sectionData **section)
 {
     // If the pointer is null, there is nothing to free
-    if (section == NULL)
+    if (*section == NULL)
         return 0;
 
     // It should be called only for sections with no pointers to other sections
-    if (section->nextSection != NULL) {
-        printf("Error - cannot free section that points to a next section\n");
+    if ((*section)->nextSection != NULL) {
+        printf("Error - cannot free section [%s], it points to a next section\n", (*section)->name);
         return 1;
     }
 
     // Firstly, free all the keys in this section if there are any
-    if (freeAllKeys(section->firstKey) != 0) {
-        printf("Error - did not free section \"%s\"\n", section->name);
+    if (freeAllKeys(&((*section)->firstKey)) != 0) {
+        printf("Error - did not free section [%s]\n", (*section)->name);
         return 1;
     }
-
-    free(section->name);
-    free(section);
-    section = NULL;
-
+printf("\t[%s] is being freed\t", (*section)->name);
+    free((*section)->name);
+    free(*section);
+    *section = NULL;
+printf("(done)\n");
     return 0;
 }
 
-int freeAllSections(sectionData *firstSection)
+int freeAllSections(sectionData **firstSection)
 {
     // If the pointer is null, there is nothing to free
-    if (firstSection == NULL) {
+    if (*firstSection == NULL) {
         return 0;
     }
-
     // Calls itself recursively to free all the sections
-    if (firstSection->nextSection != NULL) {
-        if (freeAllSections(firstSection->nextSection) != 0) {
+    if ((*firstSection)->nextSection != NULL) {
+        if (freeAllSections(&((*firstSection)->nextSection)) != 0) {
             return 1;
         }
     }
-    if (freeSection(firstSection) != 0) {
+    if (freeSection(&(*firstSection)) != 0) {
         printf("Error - did not free all the sections\n");
         return 1;
     }

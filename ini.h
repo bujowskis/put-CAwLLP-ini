@@ -43,22 +43,22 @@ sectionData* createHolder();
 /* Frees given key
  * Returns 0 on success, otherwise 1
  */
-int freeKey(keyData *key);
+int freeKey(keyData **key);
 
 /* Frees all keys recursively, starting from firstKey
  * Returns 0 on success, otherwise 1
  */
-int freeAllKeys(keyData *firstKey);
+int freeAllKeys(keyData **firstKey);
 
 /* Frees given section
  * Returns 0 on success, otherwise 1
  */
-int freeSection(sectionData *section);
+int freeSection(sectionData **section);
 
 /* Frees all the sections (and thus all the file) recursively
  * Returns 0 on success, otherwise 1
  */
-int freeAllSections(sectionData *firstSection);
+int freeAllSections(sectionData **firstSection);
 
 /* Skips 'space' characters where possible
  *

@@ -27,7 +27,7 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
     }
 
     // Stuff done on the file read into the program
-
+/*
     // Just to check - print out all sections, their keys and corresponding values
     sectionData *cSection = NULL;
     keyData *cKey = NULL;
@@ -46,8 +46,8 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
         }
         cSection = cSection->nextSection;
     }
-
-    if (freeAllSections(sections) != 0) {
+*/
+    if (freeAllSections(&sections) != 0) {
         printf("Error - freeAll() did not work\n");
         return 0;
     }
