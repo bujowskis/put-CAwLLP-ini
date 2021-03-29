@@ -26,12 +26,10 @@ int freeKey(keyData **key)
         printf("Error - cannot free key %s, it points to a next key\n", (*key)->name);
         return 1;
     }
-printf("\t\t%s is being freed\t", (*key)->name);
     free((*key)->name);
     free((*key)->valStr);
     free(*key);
     *key = NULL;
-printf("(done)\n");
 
     return 0;
 }
@@ -73,11 +71,10 @@ int freeSection(sectionData **section)
         printf("Error - did not free section [%s]\n", (*section)->name);
         return 1;
     }
-printf("\t[%s] is being freed\t", (*section)->name);
     free((*section)->name);
     free(*section);
     *section = NULL;
-printf("(done)\n");
+
     return 0;
 }
 
@@ -137,6 +134,7 @@ int readIni(char *filePath, sectionData **firstSection)
     int bufsize = 100; // Will be increased if a longer line is encountered
     if ((buf = malloc(bufsize * sizeof(char))) == NULL) {
         printf("Error - did not allocate memory for buffer\n");
+        fclose(fp);
         return 1;
     }
 
@@ -183,6 +181,7 @@ int readIni(char *filePath, sectionData **firstSection)
             if ((buf = realloc(buf, bufsize * sizeof(char))) == NULL) {
                 printf("\tError - did not reallocate memory for greater buffer\n");
                 freeAllSections(firstSection);
+                fclose(fp);
                 return 1;
             }
             // Write the rest of the line to the buffer
@@ -190,6 +189,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 printf("\tError - did not read the rest of line\n");
                 freeAllSections(firstSection);
                 free(buf);
+                fclose(fp);
                 return 1;
             }
             // Update the lastIndex
@@ -200,6 +200,7 @@ int readIni(char *filePath, sectionData **firstSection)
             printf("Error - did not skip spaces at the beginning of buf\n");
             freeAllSections(firstSection);
             free(buf);
+            fclose(fp);
             return 9;
         }
 
@@ -215,6 +216,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 printf("Error - first char of section name must be alphabetic\n");
                 freeAllSections(firstSection);
                 free(buf);
+                fclose(fp);
                 return 10;
             }
             bufIndex++;
@@ -229,6 +231,7 @@ int readIni(char *filePath, sectionData **firstSection)
                     printf("Error - invalid section name\n");
                     freeAllSections(firstSection);
                     free(buf);
+                    fclose(fp);
                     return 10;
                 }
             }
@@ -236,6 +239,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 printf("Error - expected ']', got EOF instead\n");
                 freeAllSections(firstSection);
                 free(buf);
+                fclose(fp);
                 return 10;
             }
             elementLastIndex = bufIndex - 1;
@@ -245,6 +249,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 printf("Error - did not allocate memory for a new section\n");
                 freeAllSections(firstSection);
                 free(buf);
+                fclose(fp);
                 return 1;
             }
 
@@ -253,6 +258,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 freeAllSections(firstSection);
                 free(buf);
                 free(newSection);
+                fclose(fp);
                 return 1;
             }
             // Put the name together char by char, write '\0' at the end
@@ -281,6 +287,7 @@ int readIni(char *filePath, sectionData **firstSection)
                         free(buf);
                         free(newSection);
                         free(newSectionName);
+                        fclose(fp);
                         return 10;
                     }
                     freePlaceSection = freePlaceSection->nextSection;
@@ -291,6 +298,7 @@ int readIni(char *filePath, sectionData **firstSection)
                     free(buf);
                     free(newSection);
                     free(newSectionName);
+                    fclose(fp);
                     return 10;
                 }
                 freePlaceSection->nextSection = newSection;
@@ -301,6 +309,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 printf("Error - did not skip spaces at the end of section declaration\n");
                 freeAllSections(firstSection);
                 free(buf);
+                fclose(fp);
                 return 9;
             }
             // Formatting is valid if there is a comment or a new line
@@ -311,6 +320,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 printf("Error - section declaration ends with no comment or new line\n");
                 freeAllSections(firstSection);
                 free(buf);
+                fclose(fp);
                 return 10;
             }
 
@@ -323,6 +333,7 @@ int readIni(char *filePath, sectionData **firstSection)
             printf("Error - trying to assign key before first section\n");
             freeAllSections(firstSection);
             free(buf);
+            fclose(fp);
             return 9;
         }
 
@@ -333,6 +344,7 @@ int readIni(char *filePath, sectionData **firstSection)
             printf("Error - first char of key name must be alphabetic\n");
             freeAllSections(firstSection);
             free(buf);
+            fclose(fp);
             return 11;
         }
         bufIndex++;
@@ -351,12 +363,14 @@ int readIni(char *filePath, sectionData **firstSection)
                 freeAllSections(firstSection);
                 free(buf);
                 return 11;
+                fclose(fp);
             }
         }
         if (buf[bufIndex] != '=' && buf[bufIndex] != ' ') {
             printf("Error - expected '=' after section name, got EOF\n");
             freeAllSections(firstSection);
             free(buf);
+            fclose(fp);
             return 10;
         }
         elementLastIndex = bufIndex - 1;
@@ -366,6 +380,7 @@ int readIni(char *filePath, sectionData **firstSection)
             printf("Error - did not allocate memory for the name of new section\n");
             freeAllSections(firstSection);
             free(buf);
+            fclose(fp);
             return 1;
         }
         // Put the name together char by char, write '\0' at the end
@@ -382,6 +397,7 @@ int readIni(char *filePath, sectionData **firstSection)
             freeAllSections(firstSection);
             free(buf);
             free(newKeyName);
+            fclose(fp);
             return 9;
         }
         if (buf[bufIndex] != '=') {
@@ -393,6 +409,7 @@ int readIni(char *filePath, sectionData **firstSection)
             freeAllSections(firstSection);
             free(buf);
             free(newKeyName);
+            fclose(fp);
             return 11;
         }
         bufIndex++;
@@ -401,6 +418,7 @@ int readIni(char *filePath, sectionData **firstSection)
             freeAllSections(firstSection);
             free(buf);
             free(newKeyName);
+            fclose(fp);
             return 9;
         }
         if (bufIndex == (int) lastIndex + 1) {
@@ -408,6 +426,7 @@ int readIni(char *filePath, sectionData **firstSection)
             freeAllSections(firstSection);
             free(buf);
             free(newKeyName);
+            fclose(fp);
             return 11;
         }
 
@@ -422,6 +441,7 @@ int readIni(char *filePath, sectionData **firstSection)
             freeAllSections(firstSection);
             free(buf);
             free(newKeyName);
+            fclose(fp);
             return 11;
         }
         if (isdigit(buf[bufIndex]) == 0)
@@ -437,6 +457,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 freeAllSections(firstSection);
                 free(buf);
                 free(newKeyName);
+                fclose(fp);
                 return 11;
             }
             // If there is still possibility it is a number, check it
@@ -467,6 +488,7 @@ int readIni(char *filePath, sectionData **firstSection)
                 freeAllSections(firstSection);
                 free(buf);
                 free(newKeyName);
+                fclose(fp);
                 return 1;
             }
             // Put the name together char by char, write '\0' at the end
@@ -481,6 +503,7 @@ int readIni(char *filePath, sectionData **firstSection)
             free(buf);
             free(newKeyName);
             free(newKeyvalStr);
+            fclose(fp);
             return 1;
         }
         newKey->name = newKeyName;
@@ -505,6 +528,7 @@ int readIni(char *filePath, sectionData **firstSection)
             printf("Error - did not skip spaces at the end of section declaration\n");
             freeAllSections(firstSection);
             free(buf);
+            fclose(fp);
             return 9;
         }
         // Formatting is valid if there is a comment or a new line
@@ -515,6 +539,7 @@ int readIni(char *filePath, sectionData **firstSection)
             printf("Error - key declaration ends with no comment or new line\n");
             freeAllSections(firstSection);
             free(buf);
+            fclose(fp);
             return 11;
         }
 
@@ -522,11 +547,14 @@ int readIni(char *filePath, sectionData **firstSection)
     }
     if (feof(fp)) {
         printf("(ended reading file)\n");
+        fclose(fp);
+        free(buf);
         return 0;
     }
 
     printf("Error - did not reach EOF\n");
     freeAllSections(firstSection);
     free(buf);
+    fclose(fp);
     return 9;
 }
