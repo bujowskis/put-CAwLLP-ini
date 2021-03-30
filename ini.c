@@ -129,8 +129,8 @@ int searchElement(sectionData *firstSection, char *sectionName, char *keyName, k
         printf("Error - cannot search if the keyAdress is not specified\n");
         return 1;
     }
-    if (*keyAddress != NULL) {
-        printf("Error - cannot search if the keyAddress already points to data\n");
+    if (*keyAddress == NULL) {
+        printf("Error - no key argument to bind data to\n");
         return 1;
     }
 
@@ -142,7 +142,6 @@ int searchElement(sectionData *firstSection, char *sectionName, char *keyName, k
             while (currentKey != NULL) {
                 if (strcmp(currentKey->name, keyName) == 0) {
                     *keyAddress = currentKey;
-                    printf("Element %s.%s is valid\n", sectionName, keyName);
                     return 0;
                 } else {
                     currentKey = currentKey->nextKey;
@@ -188,6 +187,10 @@ int readArgKey(char *argKey, keyArgument **keyArg)
     }
     if (currentIndex > lastIndex) {
         printf("Error - incomplete section specification\n");
+        return 1;
+    }
+    if (currentIndex == beginIndex) {
+        printf("Error - no section specified\n");
         return 1;
     }
     endIndex = currentIndex - 1;
@@ -669,7 +672,7 @@ int readIni(char *filePath, sectionData **firstSection)
         bufIndex = 0;
     }
     if (feof(fp)) {
-        printf("(ended reading file)\n");
+        printf("(ended reading file)\n\n");
         fclose(fp);
         free(buf);
         return 0;

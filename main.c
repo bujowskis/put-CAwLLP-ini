@@ -13,10 +13,10 @@
 int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need to accept arguments here
 {
     // NOTE - this is a workaround to compile the program without using the command line
-/*
-    int argc;
-    char *argv[3];
-*/
+
+    int argc = 3;
+    //char *argv[3];
+
     /* There can be two cases:
      * 1. User wants to see value of a single key
      *      - argc = 3
@@ -31,6 +31,16 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
      *      - argv[3] = expression to be evaluated, as a whole string
      */
 
+    if (argc < 3) {
+        printf("Error - excepted at least two arguments - file path and key\n");
+        return 0;
+    }
+    if (argc > 4) {
+        printf("Error - too many arguments\n");
+        printf("For simple expressions, put the expression inside quotes\n");
+        return 0;
+    }
+
     keyArgument *testArgument = malloc(sizeof(keyArgument));
     char testKey[] = "testsection1.testkeystr1";
     if (readArgKey(testKey, &testArgument) != 0) {
@@ -38,6 +48,10 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
         free(testArgument);
         return 0;
     }
+
+/* Here goes the expression evaluation test*/
+    char testExpression[] = "testsection1.testkeystr1 + testsection1.testkeystr2";
+    //
 
     char filePath[] = "testing-ini.ini";
     //char filePath[] = "example-4.5.ini";
@@ -49,11 +63,26 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
     // NOTE - filePath is going to be argv[1]
     if (readIni(filePath, &sections) != 0) {
         printf("Error - readIni() did not work\n");
+        free(testArgument->keyName);
+        free(testArgument->sectionName);
         free(testArgument);
         return 0;
     }
 
     // Stuff done on the file read into the program
+
+    if (searchElement(&(*sections), testArgument->sectionName, testArgument->keyName, &(testArgument->keyPointer)) != 0) {
+        printf("Error - searchElement() did not work\n");
+        if (freeAllSections(&sections) != 0) {
+            printf("Error - freeAll() did not work\n");
+        }
+        free(testArgument->keyName);
+        free(testArgument->sectionName);
+        free(testArgument);
+        return 0;
+    }
+    printf("Outside of function: %s.%s = %s\n", testArgument->sectionName, testArgument->keyPointer->name, testArgument->keyPointer->valStr);
+
 /*
     keyData *keyAddress = NULL;
     char sectionName[] = "testsection1";
@@ -89,6 +118,8 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
 */
     if (freeAllSections(&sections) != 0) {
         printf("Error - freeAll() did not work\n");
+        free(testArgument->keyName);
+        free(testArgument->sectionName);
         free(testArgument);
         return 0;
     }
