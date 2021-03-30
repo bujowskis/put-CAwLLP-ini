@@ -5,6 +5,7 @@
 
 typedef struct keyData keyData;
 typedef struct sectionData sectionData;
+typedef struct keyArgument keyArgument;
 
 /* STRUCTURES */
 
@@ -33,6 +34,18 @@ struct sectionData
 
     // Pointer to the next section
     sectionData *nextSection;
+};
+
+struct keyArgument
+{
+    // Name of the section
+    char *sectionName;
+
+    // Name of the key
+    char *keyName;
+
+    // Pointer to the corresponding key
+    keyData *keyPointer;
 };
 
 /* FUNCTIONS */
@@ -71,6 +84,11 @@ int skipSpaces(char *buf, int startIndex);
  * Returns 0 on success, otherwise 1
  */
 int searchElement(sectionData *firstSection, char *sectionName, char *keyName, keyData **keyAddress);
+
+/* Reads key given as an argument and stores it in a structure
+ * Returns 0 on success, otherwise 1
+ */
+int readArgKey(char *argKey, keyArgument **keyArg);
 
 /* Reads the file, i.e:
  * 1. Gets:

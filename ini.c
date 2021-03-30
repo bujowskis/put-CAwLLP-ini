@@ -158,6 +158,86 @@ int searchElement(sectionData *firstSection, char *sectionName, char *keyName, k
     return 1;
 }
 
+int readArgKey(char *argKey, keyArgument **keyArg)
+{
+    if (argKey == NULL) {
+        printf("Error - no key specified to be saved\n");
+        return 1;
+    }
+    if (keyArg == NULL) {
+        printf("Error - no place to store key as an argument\n");
+        return 1;
+    }
+    if (*keyArg == NULL) {
+        printf("Error - no place to store key as an argument provided\n");
+        return 1;
+    }
+
+    int currentIndex = 0;
+    int beginIndex = 0;
+    int endIndex, elementSize, i, j;
+    int lastIndex = (int) strlen(argKey) - 1;
+
+    // Here, till '.' it is the section name user provides
+    while (argKey[currentIndex] != '.' && currentIndex <= lastIndex) {
+        if (argKey[currentIndex] == ' ') {
+            printf("Error - whitespace inside section specification\n");
+            return 1;
+        }
+        currentIndex++;
+    }
+    if (currentIndex > lastIndex) {
+        printf("Error - incomplete section specification\n");
+        return 1;
+    }
+    endIndex = currentIndex - 1;
+    elementSize = endIndex - beginIndex + 1;
+
+    if (((*keyArg)->sectionName = malloc((elementSize + 1) * sizeof(char))) == NULL) {
+        printf("Error - did not allocate memory for the section name of key as an argument\n");
+        return 1;
+    }
+    j = 0;
+    for (i = beginIndex; i <= endIndex; i++) {
+        ((*keyArg)->sectionName)[j] = argKey[i];
+        j++;
+    }
+    ((*keyArg)->sectionName)[j + 1] = '\0';
+printf("ok, sectionName = \"%s\"\n", (*keyArg)->sectionName);
+    currentIndex++;
+    // Here, till the end of argKey it is the key name user provides
+    beginIndex = currentIndex;
+    if (beginIndex > lastIndex) {
+        printf("Error - no key specified for section \"%s\"\n", (*keyArg)->sectionName);
+        free((*keyArg)->sectionName);
+        return 1;
+    }
+    while (currentIndex <= lastIndex) {
+        if (argKey[currentIndex] == ' ') {
+            printf("Error - whitespace in key specification\n");
+            free((*keyArg)->sectionName);
+            return 1;
+        }
+        currentIndex++;
+    }
+    // NOTE - endIndex = lastIndex;
+    elementSize = lastIndex - beginIndex;
+
+    if (((*keyArg)->keyName = malloc((elementSize + 1) * sizeof(char))) == NULL) {
+        printf("Error - did not allocate memory for the key name of key as an argument\n");
+        free((*keyArg)->sectionName);
+        return 1;
+    }
+    j = 0;
+    for (i = beginIndex; i <= lastIndex; i++) {
+        ((*keyArg)->keyName)[j] = argKey[i];
+        j++;
+    }
+    ((*keyArg)->keyName)[j + 1] = '\0';
+printf("ok, keyName = \"%s\"\n", (*keyArg)->keyName);
+    return 0;
+}
+
 int readIni(char *filePath, sectionData **firstSection)
 {
     if (*firstSection != NULL) {
