@@ -67,6 +67,11 @@ int freeAllSections(sectionData **firstSection);
  */
 int skipSpaces(char *buf, int startIndex);
 
+/* Searches for a key within given section and binds its address to given holder
+ * Returns 0 on success, otherwise 1
+ */
+int searchElement(sectionData *firstSection, char *sectionName, char *keyName, keyData **keyAddress);
+
 /* Reads the file, i.e:
  * 1. Gets:
  * - number of sections

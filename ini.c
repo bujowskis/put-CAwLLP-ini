@@ -115,6 +115,49 @@ int skipSpaces(char *buf, int startIndex)
     return index;
 }
 
+int searchElement(sectionData *firstSection, char *sectionName, char *keyName, keyData **keyAddress)
+{
+    if (sectionName == NULL) {
+        printf("Error - cannot search if no section name is specified\n");
+        return 1;
+    }
+    if (keyName == NULL) {
+        printf("Error - cannot search if no key is specified\n");
+        return 1;
+    }
+    if (keyAddress == NULL) {
+        printf("Error - cannot search if the keyAdress is not specified\n");
+        return 1;
+    }
+    if (*keyAddress != NULL) {
+        printf("Error - cannot search if the keyAddress already points to data\n");
+        return 1;
+    }
+
+    sectionData *currentSection = firstSection;
+    keyData *currentKey = NULL;
+    while (currentSection != NULL) {
+        if (strcmp(currentSection->name, sectionName) == 0) {
+            currentKey = currentSection->firstKey;
+            while (currentKey != NULL) {
+                if (strcmp(currentKey->name, keyName) == 0) {
+                    *keyAddress = currentKey;
+                    printf("Element %s.%s is valid\n", sectionName, keyName);
+                    return 0;
+                } else {
+                    currentKey = currentKey->nextKey;
+                }
+            }
+            printf("Error - no such key %s\n", keyName);
+            return 1;
+        } else {
+            currentSection = currentSection->nextSection;
+        }
+    }
+    printf("Error - no such section [%s]\n", sectionName);
+    return 1;
+}
+
 int readIni(char *filePath, sectionData **firstSection)
 {
     if (*firstSection != NULL) {

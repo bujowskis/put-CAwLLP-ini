@@ -29,6 +29,17 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
     }
 
     // Stuff done on the file read into the program
+    keyData *keyAddress = NULL;
+    char sectionName[] = "testsection1";
+    char keyName[] = "testkeystr1";
+    if (searchElement(&(*sections), &(*sectionName), &(*keyName), &keyAddress) != 0) {
+        printf("Error - searchElement() did not work\n");
+        if (freeAllSections(&sections) != 0) {
+            printf("Error - freeAll() did not work\n");
+        }
+        return 0;
+    }
+    printf("Outside of function, keyAddress->name = %s\n", keyAddress->name);
 /*
     // Just to check - print out all sections, their keys and corresponding values
     sectionData *cSection = NULL;
@@ -53,23 +64,6 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
         printf("Error - freeAll() did not work\n");
         return 0;
     }
-/*
-    // Just to check - try to print out it again
-    cSection = sections;
-    while (cSection != NULL) {
-        printf("[%s]\n", cSection->name);
-        cKey = cSection->firstKey;
-        while (cKey != NULL) {
-            printf("\t%s = ", cKey->name);
-            if (cKey->valStr != NULL) {
-                printf("\"%s\"\n", cKey->valStr);
-            } else {
-                printf("%d\n", cKey->valNum);
-            }
-            cKey = cKey->nextKey;
-        }
-        cSection = cSection->nextSection;
-    }
-*/
+
     return 0;
 }
