@@ -168,10 +168,9 @@ int readArgKey(char *argKey, keyArgument **keyArg)
         return 1;
     }
     if (*keyArg == NULL) {
-        printf("Error - no place to store key as an argument provided\n");
+        printf("Error - no place to store key as an argument\n");
         return 1;
     }
-
     int currentIndex = 0;
     int beginIndex = 0;
     int endIndex, elementSize, i, j;
@@ -205,7 +204,7 @@ int readArgKey(char *argKey, keyArgument **keyArg)
         ((*keyArg)->sectionName)[j] = argKey[i];
         j++;
     }
-    ((*keyArg)->sectionName)[j + 1] = '\0';
+    ((*keyArg)->sectionName)[j] = '\0'; // HERE
 printf("ok, sectionName = \"%s\"\n", (*keyArg)->sectionName);
     currentIndex++;
     // Here, till the end of argKey it is the key name user provides
@@ -236,8 +235,135 @@ printf("ok, sectionName = \"%s\"\n", (*keyArg)->sectionName);
         ((*keyArg)->keyName)[j] = argKey[i];
         j++;
     }
-    ((*keyArg)->keyName)[j + 1] = '\0';
+    ((*keyArg)->keyName)[j] = '\0';
 printf("ok, keyName = \"%s\"\n", (*keyArg)->keyName);
+    return 0;
+}
+
+int readSimpleExpression(char *expression, keyArgument **firstkeyArg, keyArgument **secondkeyArg)
+{
+    if (expression == NULL) {
+        printf("Error - no expression given\n");
+        return -1;
+    }
+    if (firstkeyArg == NULL || *firstkeyArg == NULL) {
+        printf("Error - no place to store first key as an argument given\n");
+        return -1;
+    }
+    if (secondkeyArg == NULL || *secondkeyArg == NULL) {
+        printf("Error - no place to store second key as an argument given\n");
+        return -1;
+    }
+
+    int currentPlace = 0;
+    int i, j;
+    int beginIndex = 0;
+    int endIndex, elementSize, operat;
+    int lastIndex = (int) strlen(expression) - 1;
+    char *firstkeyString, *secondkeyString;
+
+    // We read the first key argument
+    while (expression[currentPlace] != ' ' && currentPlace <= lastIndex) {
+        currentPlace++;
+    }
+    if (currentPlace > lastIndex) {
+        printf("Error - for a single line reading, skip \"expression\"\n");
+        printf("Remember about proper formatting, i.e. \"section1.key1 <operator> section2.key2\"");
+        return -1;
+    }
+    endIndex = currentPlace - 1;
+    elementSize = endIndex - beginIndex + 1;
+    if ((firstkeyString = malloc((elementSize + 1) * sizeof(char))) == NULL) {
+        printf("Error - did not allocate memory for firstkeyString\n");
+        return -1;
+    }
+    j = 0;
+    for (i = beginIndex; i <= endIndex; i++) {
+        firstkeyString[j] = expression[i];
+        j++;
+    }
+    firstkeyString[j] = '\0';
+printf("firstkeyString = %s\n", firstkeyString);
+    // Binds the data
+    if (readArgKey(firstkeyString, firstkeyArg) != 0) {
+        printf("Error - readArgKey() in simple expression did not work\n");
+        free(firstkeyString);
+        return -1;
+    }
+ //   free(firstkeyString);
+    currentPlace++;
+    if (currentPlace > lastIndex) {
+        printf("Error - for a single line reading, skip \"expression\"\n");
+        printf("Remember about proper formatting, i.e. \"section1.key1 <operator> section2.key2\"");
+        // NOTE - freekeyArg()
+        return -1;
+    }
+
+    // Here should be an operator
+    switch(expression[currentPlace]) {
+        case '+' :
+            operat = 1;
+            break;
+        case '-' :
+            operat = 2;
+            break;
+        case '*' :
+            operat = 3;
+            break;
+        case '/' :
+            operat = 4;
+            break;
+        default :
+            printf("Error - expected '+', '-', '*' or '/' operator, got '%c'\n", expression[currentPlace]);
+            // NOTE - freekeyArg()
+            return -1;
+    }
+
+    currentPlace++;
+    if (expression[currentPlace] != ' ') {
+        printf("Error - remember about a space after the operator\n");
+        // NOTE - freekeyArg()
+        return -1;
+    }
+    currentPlace++;
+    if(currentPlace > lastIndex) {
+        printf("Error - no second key argument specified\n");
+        // NOTE - freekeyArg()
+        return -1;
+    }
+
+    // Here, till the end should be the second key argument
+    beginIndex = currentPlace;
+    endIndex = lastIndex;
+    elementSize = lastIndex - beginIndex + 1;
+    if ((secondkeyString = malloc((elementSize + 1) * sizeof(char))) == NULL) {
+        printf("Error - did not allocate memory for secondkeyString\n");
+        // NOTE - freekeyArg()
+        return -1;
+    }
+    j = 0;
+    for (i = beginIndex; i <= endIndex; i++) {
+        secondkeyString[j] = expression[i];
+        j++;
+    }
+    secondkeyString[j] = '\0';
+    printf("secondKeyString = %s\n", secondkeyString);
+    // Binds the data
+    if (readArgKey(secondkeyString, secondkeyArg) != 0) {
+        printf("Error - readArgKey() in simple expression did not work\n");
+        free(firstkeyString);
+        free(secondkeyString);
+        return -1;
+    }
+    //free(secondkeyString);
+
+    return operat;
+}
+
+// TODO
+int freekeyArg()
+{
+
     return 0;
 }
 

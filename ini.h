@@ -90,6 +90,16 @@ int searchElement(sectionData *firstSection, char *sectionName, char *keyName, k
  */
 int readArgKey(char *argKey, keyArgument **keyArg);
 
+/* Reads a simple expression and binds data needed to evaluate it
+ * On success, returns the id of given operator:
+ *      1 = '+'
+ *      2 = '-'
+ *      3 = '*'
+ *      4 = '/'
+ * On failure, returns -1
+ */
+int readSimpleExpression(char *expression, keyArgument **firstkeyArg, keyArgument **secondkeyArg);
+
 /* Reads the file, i.e:
  * 1. Gets:
  * - number of sections
