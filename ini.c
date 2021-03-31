@@ -224,7 +224,7 @@ printf("ok, sectionName = \"%s\"\n", (*keyArg)->sectionName);
         currentIndex++;
     }
     // NOTE - endIndex = lastIndex;
-    elementSize = lastIndex - beginIndex;
+    elementSize = lastIndex - beginIndex + 1;
 
     if (((*keyArg)->keyName = malloc((elementSize + 1) * sizeof(char))) == NULL) {
         printf("Error - did not allocate memory for the key name of key as an argument\n");
@@ -291,12 +291,11 @@ printf("firstkeyString = %s\n", firstkeyString);
         free(firstkeyString);
         return -1;
     }
- //   free(firstkeyString);
+    free(firstkeyString);
     currentPlace++;
     if (currentPlace > lastIndex) {
         printf("Error - for a single line reading, skip \"expression\"\n");
         printf("Remember about proper formatting, i.e. \"section1.key1 <operator> section2.key2\"");
-        // NOTE - freekeyArg()
         return -1;
     }
 
@@ -316,20 +315,17 @@ printf("firstkeyString = %s\n", firstkeyString);
             break;
         default :
             printf("Error - expected '+', '-', '*' or '/' operator, got '%c'\n", expression[currentPlace]);
-            // NOTE - freekeyArg()
             return -1;
     }
 
     currentPlace++;
     if (expression[currentPlace] != ' ') {
         printf("Error - remember about a space after the operator\n");
-        // NOTE - freekeyArg()
         return -1;
     }
     currentPlace++;
     if(currentPlace > lastIndex) {
         printf("Error - no second key argument specified\n");
-        // NOTE - freekeyArg()
         return -1;
     }
 
@@ -339,7 +335,6 @@ printf("firstkeyString = %s\n", firstkeyString);
     elementSize = lastIndex - beginIndex + 1;
     if ((secondkeyString = malloc((elementSize + 1) * sizeof(char))) == NULL) {
         printf("Error - did not allocate memory for secondkeyString\n");
-        // NOTE - freekeyArg()
         return -1;
     }
     j = 0;
@@ -352,16 +347,14 @@ printf("firstkeyString = %s\n", firstkeyString);
     // Binds the data
     if (readArgKey(secondkeyString, secondkeyArg) != 0) {
         printf("Error - readArgKey() in simple expression did not work\n");
-        free(firstkeyString);
         free(secondkeyString);
         return -1;
     }
-    //free(secondkeyString);
+    free(secondkeyString);
 
     return operat;
 }
 
-// TODO
 void freekeyArg(keyArgument **key)
 {
     if (*key == NULL)
@@ -369,7 +362,6 @@ void freekeyArg(keyArgument **key)
 
     free((*key)->sectionName);
     free((*key)->keyName);
-    free(key);
 
     return;
 }

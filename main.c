@@ -41,37 +41,47 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
     keyArgument *keyArg2 = NULL;
     int operatorID;
 
+    // At least one key will be needed regardless of expression
+    if ((keyArg1 = malloc(sizeof(keyArgument))) == NULL) {
+        printf("Error - did not allocate memory for the first key\n");
+        return 0;
+    }
+    keyArg1->sectionName = NULL;
+    keyArg1->keyName = NULL;
+    keyArg1->keyPointer = NULL;
+
     if (argc == 3) {
         // Expecting a single key to be printed
-        if ((keyArg1 = malloc(sizeof(keyArgument))) == NULL) {
-            printf("Error - did not allocate memory for the provided key\n");
-            return 0;
-        }
         if (readArgKey(argv[2], &keyArg1) != 0) {
             printf("Error - did not read the key into keyArgument\n");
             freekeyArg(&keyArg1);
+            free(keyArg1);
             return 0;
         }
     } else {
         // Expecting a simple expression to be evaluated
+        if ((keyArg2 = malloc(sizeof(keyArgument))) == NULL) {
+            printf("Error - did not allocate memory for the second key\n");
+            freekeyArg(&keyArg1);
+            free(keyArg1);
+            return 0;
+        }
+        keyArg2->sectionName = NULL;
+        keyArg2->keyName = NULL;
+        keyArg2->keyPointer = NULL;
+
         if (strcmp(argv[2], "expression") != 0) {
             printf("Error - expected \"expression\" keyword declaration\n");
             printf("Proper arguments formatting: filePath expression \"section1.key1 <operator> section2.key2\"\n");
             return 0;
         }
-        if ((keyArg1 = malloc(sizeof(keyArgument))) == NULL) {
-            printf("Error - did not allocate memory for the first key\n");
-            return 0;
-        }
-        if ((keyArg2 = malloc(sizeof(keyArgument))) == NULL) {
-            printf("Error - did not allocate memory for the second key\n");
-            freekeyArg(&keyArg1);
-            return 0;
-        }
+
         if ((operatorID = readSimpleExpression(argv[3], &keyArg1, &keyArg2)) == -1) {
             printf("Error - could not read simple expression\n");
             freekeyArg(&keyArg1);
+            free(keyArg1);
             freekeyArg(&keyArg2);
+            free(keyArg2);
             return 0;
         }
     }
@@ -83,7 +93,9 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
     if (readIni(argv[1], &sections) != 0) {\
         printf("Error - could not read the ini file\n");
         freekeyArg(&keyArg1);
+        free(keyArg1);
         freekeyArg(&keyArg2);
+        free(keyArg2);
         return 0;
     }
 
@@ -108,6 +120,17 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
         cSection = cSection->nextSection;
     }
 */
+    // This keyArg will be needed no matter if user wants expression or single key
+    if (searchElement(sections, keyArg1->sectionName, keyArg1->keyName, &(keyArg1->keyPointer))) {
+            printf("Error - Could not bind the data to keyArg1\n");
+            if (freeAllSections(&sections) != 0)
+                printf("Error - freeAllSections() did not work\n");
+            freekeyArg(&keyArg1);
+            free(keyArg1);
+            freekeyArg(&keyArg2);
+            free(keyArg2);
+            return 0;
+    }
 
     // Printing data required by the user
     if (argc == 3) {
@@ -122,6 +145,16 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
         }
     } else {
         // Expression to be evaluated
+        if (searchElement(sections, keyArg2->sectionName, keyArg2->keyName, &(keyArg2->keyPointer))) {
+            printf("Error - Could not bind the data to keyArg2\n");
+            if (freeAllSections(&sections) != 0)
+                printf("Error - freeAllSections() did not work\n");
+            freekeyArg(&keyArg1);
+            free(keyArg1);
+            freekeyArg(&keyArg2);
+            free(keyArg2);
+            return 0;
+        }
         switch (operatorID) {
             // String-type data is supported
             case 1: // '+'
@@ -174,7 +207,9 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
     if (freeAllSections(&sections) != 0)
         printf("Error - freeAllSections() did not work\n");
     freekeyArg(&keyArg1);
+    free(keyArg1);
     freekeyArg(&keyArg2);
+    free(keyArg2);
     return 0;
 }
 

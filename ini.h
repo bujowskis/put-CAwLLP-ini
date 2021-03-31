@@ -100,7 +100,9 @@ int readArgKey(char *argKey, keyArgument **keyArg);
  */
 int readSimpleExpression(char *expression, keyArgument **firstkeyArg, keyArgument **secondkeyArg);
 
-// Frees all the data from given key
+/* Frees all the data from given key
+ * It's still needed to free memory allocated for the pointer
+ */
 void freekeyArg(keyArgument **key);
 
 /* Reads the file, i.e:
