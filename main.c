@@ -6,17 +6,13 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <float.h>
 
 // Standard format of arguments: $ ./program PATH-TO-INI-FILE.ini section.key
 // Enhanced format of arguments: $ ./program PATH-TO-INI-FILE.ini expression "distance.velocity * travel.time"
 
-int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need to accept arguments here
+int main(int argc, char *argv[]) // NOTE - at some point, there will be need to accept arguments here
 {
-    // NOTE - this is a workaround to compile the program without using the command line
-
-    int argc = 3;
-    //char *argv[3];
-
     /* There can be two cases:
      * 1. User wants to see value of a single key
      *      - argc = 3
@@ -28,7 +24,7 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
      *      - argc = 4
      *      - argv[1] = filePath
      *      - argv[2] = "expression"
-     *      - argv[3] = expression to be evaluated, as a whole string
+     *      - argv[3] = simple expression to be evaluated, as a whole string
      */
 
     if (argc < 3) {
@@ -37,87 +33,63 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
     }
     if (argc > 4) {
         printf("Error - too many arguments\n");
-        printf("For simple expressions, put the expression inside quotes\n");
+        printf("For simple expressions, put the whole expression inside quotes\n");
         return 0;
     }
-/*
-    keyArgument *testArgument = malloc(sizeof(keyArgument));
-    char testKey[] = "testsection1.testkeystr1";
-    if (readArgKey(testKey, &testArgument) != 0) {
-        printf("Error - readArgKey() did not work\n");
-        free(testArgument);
-        return 0;
+
+    keyArgument *keyArg1 = NULL;
+    keyArgument *keyArg2 = NULL;
+    int operatorID;
+
+    if (argc == 3) {
+        // Expecting a single key to be printed
+        if ((keyArg1 = malloc(sizeof(keyArgument))) == NULL) {
+            printf("Error - did not allocate memory for the provided key\n");
+            return 0;
+        }
+        if (readArgKey(argv[2], &keyArg1) != 0) {
+            printf("Error - did not read the key into keyArgument\n");
+            freekeyArg(&keyArg1);
+            return 0;
+        }
+    } else {
+        // Expecting a simple expression to be evaluated
+        if (strcmp(argv[2], "expression") != 0) {
+            printf("Error - expected \"expression\" keyword declaration\n");
+            printf("Proper arguments formatting: filePath expression \"section1.key1 <operator> section2.key2\"\n");
+            return 0;
+        }
+        if ((keyArg1 = malloc(sizeof(keyArgument))) == NULL) {
+            printf("Error - did not allocate memory for the first key\n");
+            return 0;
+        }
+        if ((keyArg2 = malloc(sizeof(keyArgument))) == NULL) {
+            printf("Error - did not allocate memory for the second key\n");
+            freekeyArg(&keyArg1);
+            return 0;
+        }
+        if ((operatorID = readSimpleExpression(argv[3], &keyArg1, &keyArg2)) == -1) {
+            printf("Error - could not read simple expression\n");
+            freekeyArg(&keyArg1);
+            freekeyArg(&keyArg2);
+            return 0;
+        }
     }
-    */
-/* Here goes the expression evaluation test*/
 
-    char testExpression[] = "testsection1.testspace * testsectionEOF.testkeyEOF";
-    keyArgument *testFirstArg = malloc(sizeof(keyArgument));
-    keyArgument *testSecondArg = malloc(sizeof(keyArgument));
-
-    int operatorId;
-    if ((operatorId = readSimpleExpression(testExpression, &testFirstArg, &testSecondArg)) == -1) {
-        printf("Error - readSimpleExpression() did not work\n");
-        return 0;
-    }
-    printf("operatorId = %d\n", operatorId);
-    //
-
-    char filePath[] = "testing-ini.ini";
-    //char filePath[] = "example-4.5.ini";
-    //char filePath[] = "testing-empty.ini";
-    // sections is really just a pointer to the first section
+    // Pointer to the first section
     sectionData *sections;
     sections = createHolder();
 
-    // NOTE - filePath is going to be argv[1]
-    if (readIni(filePath, &sections) != 0) {
-        printf("Error - readIni() did not work\n");
-//        free(testArgument->keyName);
-  //      free(testArgument->sectionName);
-    //    free(testArgument);
+    if (readIni(argv[1], &sections) != 0) {\
+        printf("Error - could not read the ini file\n");
+        freekeyArg(&keyArg1);
+        freekeyArg(&keyArg2);
         return 0;
     }
 
-    searchElement(&(*sections), testFirstArg->sectionName, testFirstArg->keyName, &(testFirstArg->keyPointer));
-    searchElement(&(*sections), testSecondArg->sectionName, testSecondArg->keyName, &(testSecondArg->keyPointer));
-
-    printf("Outside of function:\n");
-    printf("testFirstArg->keyPointer->valStr = %s\n", testFirstArg->keyPointer->valStr);
-    printf("testSecondArg->keyPointer->valStr = %s\n", testSecondArg->keyPointer->valStr);
-
-    // Stuff done on the file read into the program
 /*
-    if (searchElement(&(*sections), testArgument->sectionName, testArgument->keyName, &(testArgument->keyPointer)) != 0) {
-        printf("Error - searchElement() did not work\n");
-        if (freeAllSections(&sections) != 0) {
-            printf("Error - freeAll() did not work\n");
-        }
-        free(testArgument->keyName);
-        free(testArgument->sectionName);
-        free(testArgument);
-        return 0;
-    }
-    printf("Outside of function: %s.%s = %s\n", testArgument->sectionName, testArgument->keyPointer->name, testArgument->keyPointer->valStr);
-*/
+    // NOTE - uncomment to see the structure of the ini file read into program
 
-
-
-/*
-    keyData *keyAddress = NULL;
-    char sectionName[] = "testsection1";
-    char keyName[] = "testkeystr1";
-    if (searchElement(&(*sections), &(*sectionName), &(*keyName), &keyAddress) != 0) {
-        printf("Error - searchElement() did not work\n");
-        if (freeAllSections(&sections) != 0) {
-            printf("Error - freeAll() did not work\n");
-        }
-        return 0;
-    }
-    printf("Outside of function, keyAddress->name = %s\n", keyAddress->name);
-*/
-/*
-    // Just to check - print out all sections, their keys and corresponding values
     sectionData *cSection = NULL;
     keyData *cKey = NULL;
     cSection = sections;
@@ -136,14 +108,110 @@ int main(/*int argc, char *argv[]*/) // NOTE - at some point, there will be need
         cSection = cSection->nextSection;
     }
 */
-    if (freeAllSections(&sections) != 0) {
-        printf("Error - freeAll() did not work\n");
- //       free(testArgument->keyName);
-   //     free(testArgument->sectionName);
-     //   free(testArgument);
-        return 0;
+
+    // Printing data required by the user
+    if (argc == 3) {
+        // Only single key to be printed
+        printf("%s.%s = ", keyArg1->sectionName, keyArg1->keyName);
+        if (keyArg1->keyPointer->valStr != NULL) {
+            // Data is of string type
+            printf("\"%s\"\n", keyArg1->keyPointer->valStr);
+        } else {
+            // Data is of integer type
+            printf("%d\n", keyArg1->keyPointer->valNum);
+        }
+    } else {
+        // Expression to be evaluated
+        switch (operatorID) {
+            // String-type data is supported
+            case 1: // '+'
+                if ((keyArg1->keyPointer->valStr != NULL) && (keyArg2->keyPointer->valStr != NULL)) {
+                    // String concatenation
+                    printf("concatenated string: \"%s%s\"\n", keyArg1->keyPointer->valStr, keyArg2->keyPointer->valStr);
+                } else if ((keyArg1->keyPointer->valStr == NULL) && (keyArg2->keyPointer->valStr == NULL)) {
+                    // Sum of integer-type data
+                    printf("sum = %d\n", keyArg1->keyPointer->valNum + keyArg2->keyPointer->valNum);
+                } else {
+                    printf("Error - expression involves operands of different types\n");
+                }
+                break;
+
+            // String-type data is not supported
+            case 2: // '-'
+                if ((keyArg1->keyPointer->valStr != NULL) || (keyArg2->keyPointer->valStr != NULL)) {
+                    printf("Error - string-type data does not support subtraction\n");
+                    break;
+                }
+                printf("difference = %d\n", keyArg1->keyPointer->valNum - keyArg1->keyPointer->valNum);
+                break;
+            case 3: // '*'
+                if ((keyArg1->keyPointer->valStr != NULL) || (keyArg2->keyPointer->valStr != NULL)) {
+                    printf("Error - string-type data does not support multiplication\n");
+                    break;
+                }
+                printf("product = %d\n", keyArg1->keyPointer->valNum * keyArg2->keyPointer->valNum);
+                break;
+            case 4: // '/'
+                if ((keyArg1->keyPointer->valStr != NULL) || (keyArg2->keyPointer->valStr != NULL)) {
+                    printf("Error - string-type data does not support division\n");
+                    break;
+                }
+                if (keyArg2->keyPointer->valNum == 0) {
+                    printf("Cannot divide by 0\n");
+                    break;
+                }
+                printf("quotient = %.2e\n", (float) keyArg1->keyPointer->valNum / keyArg2->keyPointer->valNum);
+                break;
+
+            // default will most probably never occur
+            // It's just a safety measure
+            default:
+                printf("Error - unknown operator\n");
+        }
     }
 
- //   free(testArgument);
+    // Free the rest of the data
+    if (freeAllSections(&sections) != 0)
+        printf("Error - freeAllSections() did not work\n");
+    freekeyArg(&keyArg1);
+    freekeyArg(&keyArg2);
     return 0;
 }
+
+/*
+    // TESTING SINGLE INPUT
+    if (searchElement(&(*sections), testArgument->sectionName, testArgument->keyName, &(testArgument->keyPointer)) != 0) {
+        printf("Error - searchElement() did not work\n");
+        if (freeAllSections(&sections) != 0) {
+            printf("Error - freeAll() did not work\n");
+        }
+        free(testArgument->keyName);
+        free(testArgument->sectionName);
+        free(testArgument);
+        return 0;
+    }
+    printf("Outside of function: %s.%s = %s\n", testArgument->sectionName, testArgument->keyPointer->name, testArgument->keyPointer->valStr);
+*/
+
+/*
+    // EXPRESSION EVALUATION INTRO
+    char testExpression[] = "testsection1.testspace + testsectionEOF.testkeyEOF";
+    keyArgument *testFirstArg = malloc(sizeof(keyArgument));
+    keyArgument *testSecondArg = malloc(sizeof(keyArgument));
+
+    int operatorId;
+    if ((operatorId = readSimpleExpression(testExpression, &testFirstArg, &testSecondArg)) == -1) {
+        printf("Error - readSimpleExpression() did not work\n");
+        return 0;
+    }
+*/
+
+/*
+    // TESTING SIMPLE EXPRESSION INPUT
+    searchElement(&(*sections), testFirstArg->sectionName, testFirstArg->keyName, &(testFirstArg->keyPointer));
+    searchElement(&(*sections), testSecondArg->sectionName, testSecondArg->keyName, &(testSecondArg->keyPointer));
+
+    printf("Outside of function:\n");
+    printf("testFirstArg->keyPointer->valStr = %s\n", testFirstArg->keyPointer->valStr);
+    printf("testSecondArg->keyPointer->valStr = %s\n", testSecondArg->keyPointer->valStr);
+*/

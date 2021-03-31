@@ -100,6 +100,9 @@ int readArgKey(char *argKey, keyArgument **keyArg);
  */
 int readSimpleExpression(char *expression, keyArgument **firstkeyArg, keyArgument **secondkeyArg);
 
+// Frees all the data from given key
+void freekeyArg(keyArgument **key);
+
 /* Reads the file, i.e:
  * 1. Gets:
  * - number of sections

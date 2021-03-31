@@ -6,6 +6,7 @@
 #include <string.h>
 #include <stdbool.h>
 #include <ctype.h>
+#include <float.h>
 
 sectionData *createHolder()
 {
@@ -361,10 +362,16 @@ printf("firstkeyString = %s\n", firstkeyString);
 }
 
 // TODO
-int freekeyArg()
+void freekeyArg(keyArgument **key)
 {
+    if (*key == NULL)
+        return;
 
-    return 0;
+    free((*key)->sectionName);
+    free((*key)->keyName);
+    free(key);
+
+    return;
 }
 
 int readIni(char *filePath, sectionData **firstSection)
