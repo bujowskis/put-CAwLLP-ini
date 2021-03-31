@@ -11,7 +11,11 @@
 // Standard format of arguments: $ ./program PATH-TO-INI-FILE.ini section.key
 // Enhanced format of arguments: $ ./program PATH-TO-INI-FILE.ini expression "distance.velocity * travel.time"
 
-int main(int argc, char *argv[]) // NOTE - at some point, there will be need to accept arguments here
+/* NOTE - program is split with ini.h
+ * compile both main.c and ini.c, then run ./main to use it.
+ */
+
+int main(int argc, char *argv[])
 {
     /* There can be two cases:
      * 1. User wants to see value of a single key
@@ -188,7 +192,7 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
                     printf("Error - string-type data does not support multiplication\n");
                     break;
                 }
-                printf("product = %d\n", keyArg1->keyPointer->valNum * keyArg2->keyPointer->valNum);
+                printf("product = %lu\n", (unsigned long) keyArg1->keyPointer->valNum * keyArg2->keyPointer->valNum);
                 break;
             case 4: // '/'
                 if ((keyArg1->keyPointer->valStr != NULL) || (keyArg2->keyPointer->valStr != NULL)) {
