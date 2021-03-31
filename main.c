@@ -46,6 +46,7 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
         printf("Error - did not allocate memory for the first key\n");
         return 0;
     }
+
     keyArg1->sectionName = NULL;
     keyArg1->keyName = NULL;
     keyArg1->keyPointer = NULL;
@@ -66,6 +67,7 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
             free(keyArg1);
             return 0;
         }
+
         keyArg2->sectionName = NULL;
         keyArg2->keyName = NULL;
         keyArg2->keyPointer = NULL;
@@ -73,6 +75,10 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
         if (strcmp(argv[2], "expression") != 0) {
             printf("Error - expected \"expression\" keyword declaration\n");
             printf("Proper arguments formatting: filePath expression \"section1.key1 <operator> section2.key2\"\n");
+            freekeyArg(&keyArg1);
+            free(keyArg1);
+            freekeyArg(&keyArg2);
+            free(keyArg2);
             return 0;
         }
 
@@ -175,7 +181,7 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
                     printf("Error - string-type data does not support subtraction\n");
                     break;
                 }
-                printf("difference = %d\n", keyArg1->keyPointer->valNum - keyArg1->keyPointer->valNum);
+                printf("difference = %d\n", keyArg1->keyPointer->valNum - keyArg2->keyPointer->valNum);
                 break;
             case 3: // '*'
                 if ((keyArg1->keyPointer->valStr != NULL) || (keyArg2->keyPointer->valStr != NULL)) {
@@ -212,41 +218,3 @@ int main(int argc, char *argv[]) // NOTE - at some point, there will be need to 
     free(keyArg2);
     return 0;
 }
-
-/*
-    // TESTING SINGLE INPUT
-    if (searchElement(&(*sections), testArgument->sectionName, testArgument->keyName, &(testArgument->keyPointer)) != 0) {
-        printf("Error - searchElement() did not work\n");
-        if (freeAllSections(&sections) != 0) {
-            printf("Error - freeAll() did not work\n");
-        }
-        free(testArgument->keyName);
-        free(testArgument->sectionName);
-        free(testArgument);
-        return 0;
-    }
-    printf("Outside of function: %s.%s = %s\n", testArgument->sectionName, testArgument->keyPointer->name, testArgument->keyPointer->valStr);
-*/
-
-/*
-    // EXPRESSION EVALUATION INTRO
-    char testExpression[] = "testsection1.testspace + testsectionEOF.testkeyEOF";
-    keyArgument *testFirstArg = malloc(sizeof(keyArgument));
-    keyArgument *testSecondArg = malloc(sizeof(keyArgument));
-
-    int operatorId;
-    if ((operatorId = readSimpleExpression(testExpression, &testFirstArg, &testSecondArg)) == -1) {
-        printf("Error - readSimpleExpression() did not work\n");
-        return 0;
-    }
-*/
-
-/*
-    // TESTING SIMPLE EXPRESSION INPUT
-    searchElement(&(*sections), testFirstArg->sectionName, testFirstArg->keyName, &(testFirstArg->keyPointer));
-    searchElement(&(*sections), testSecondArg->sectionName, testSecondArg->keyName, &(testSecondArg->keyPointer));
-
-    printf("Outside of function:\n");
-    printf("testFirstArg->keyPointer->valStr = %s\n", testFirstArg->keyPointer->valStr);
-    printf("testSecondArg->keyPointer->valStr = %s\n", testSecondArg->keyPointer->valStr);
-*/

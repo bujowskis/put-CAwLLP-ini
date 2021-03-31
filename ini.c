@@ -130,10 +130,6 @@ int searchElement(sectionData *firstSection, char *sectionName, char *keyName, k
         printf("Error - cannot search if the keyAdress is not specified\n");
         return 1;
     }
-    if (*keyAddress == NULL) {
-        printf("Error - no key argument to bind data to\n");
-        return 1;
-    }
 
     sectionData *currentSection = firstSection;
     keyData *currentKey = NULL;
@@ -205,20 +201,18 @@ int readArgKey(char *argKey, keyArgument **keyArg)
         ((*keyArg)->sectionName)[j] = argKey[i];
         j++;
     }
-    ((*keyArg)->sectionName)[j] = '\0'; // HERE
-printf("ok, sectionName = \"%s\"\n", (*keyArg)->sectionName);
+    ((*keyArg)->sectionName)[j] = '\0';
     currentIndex++;
+
     // Here, till the end of argKey it is the key name user provides
     beginIndex = currentIndex;
     if (beginIndex > lastIndex) {
         printf("Error - no key specified for section \"%s\"\n", (*keyArg)->sectionName);
-        free((*keyArg)->sectionName);
         return 1;
     }
     while (currentIndex <= lastIndex) {
         if (argKey[currentIndex] == ' ') {
             printf("Error - whitespace in key specification\n");
-            free((*keyArg)->sectionName);
             return 1;
         }
         currentIndex++;
@@ -228,7 +222,6 @@ printf("ok, sectionName = \"%s\"\n", (*keyArg)->sectionName);
 
     if (((*keyArg)->keyName = malloc((elementSize + 1) * sizeof(char))) == NULL) {
         printf("Error - did not allocate memory for the key name of key as an argument\n");
-        free((*keyArg)->sectionName);
         return 1;
     }
     j = 0;
@@ -237,7 +230,6 @@ printf("ok, sectionName = \"%s\"\n", (*keyArg)->sectionName);
         j++;
     }
     ((*keyArg)->keyName)[j] = '\0';
-printf("ok, keyName = \"%s\"\n", (*keyArg)->keyName);
     return 0;
 }
 
@@ -284,7 +276,6 @@ int readSimpleExpression(char *expression, keyArgument **firstkeyArg, keyArgumen
         j++;
     }
     firstkeyString[j] = '\0';
-printf("firstkeyString = %s\n", firstkeyString);
     // Binds the data
     if (readArgKey(firstkeyString, firstkeyArg) != 0) {
         printf("Error - readArgKey() in simple expression did not work\n");
@@ -343,7 +334,6 @@ printf("firstkeyString = %s\n", firstkeyString);
         j++;
     }
     secondkeyString[j] = '\0';
-    printf("secondKeyString = %s\n", secondkeyString);
     // Binds the data
     if (readArgKey(secondkeyString, secondkeyArg) != 0) {
         printf("Error - readArgKey() in simple expression did not work\n");
@@ -373,7 +363,7 @@ int readIni(char *filePath, sectionData **firstSection)
         return 9;
     }
 
-    printf("(started reading file)\n");
+    printf("(started reading ini file)\n");
     FILE *fp = fopen(filePath, "r");
     if (!fp) {
         printf("\nError: No such file (%s)\n", filePath);
@@ -411,7 +401,7 @@ int readIni(char *filePath, sectionData **firstSection)
 
         // After each reading, all pointers except currentSection must
         // forget what they were pointing to to prevent data overriding
-        // All possible "forgotten" data will still be freed in case of
+        // All possible data already binded will be freed in case of
         // errors using freeAllSections()
 
         newSection = NULL;
@@ -610,11 +600,11 @@ int readIni(char *filePath, sectionData **firstSection)
             if ((isalnum(buf[bufIndex]) != 0) || (buf[bufIndex] == '-') || (buf[bufIndex] == '_')) {
                 bufIndex++;
             } else {
-                printf("Error - invalid key name\n");
+                printf("Error - invalid key name inside the ini file\n");
                 freeAllSections(firstSection);
                 free(buf);
-                return 11;
                 fclose(fp);
+                return 11;
             }
         }
         if (buf[bufIndex] != '=' && buf[bufIndex] != ' ') {
